@@ -1,0 +1,1323 @@
+---
+title: "Manuscript plots"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The code in this document is for plots and models for the manuscript: 
+
+*Gaze Entropy Metrics for Mental Workload Estimation are Heterogenous During Hands-Off Level 2 Automation*
+
+## Packages
+
+This are the packages used in manuscript. If they are not detected in your environment, they will be automatically installed and loaded into the environment once this chunk has been run. 
+
+```{r}
+if(!require(here)) install.packages("here")
+library(here)
+
+if(!require(ggplot2)) install.packages("ggplot2")
+library(ggplot2)
+
+if(!require(dplyr)) install.packages("dplyr")
+library(dplyr)
+
+if(!require(tidyr)) install.packages("tidyr")
+library(tidyr)
+
+if(!require(viridis)) install.packages("viridis")
+library(viridis)
+
+if(!require(gridExtra)) install.packages("gridExtra")
+library(gridExtra)
+
+if(!require(readr)) install.packages("readr")
+library(readr)
+
+if(!require(plyr)) install.packages("plyr")
+library(plyr)
+
+if(!require(stringr)) install.packages("stringr")
+library(stringr)
+
+if(!require(readxl)) install.packages("readxl")
+library(readxl)
+
+if(!require(data.table)) install.packages("data.table")
+library(data.table)
+
+if(!require(lmerTest)) install.packages("lmerTest")
+library(lmerTest)
+
+if(!require(plotly)) install.packages("plotly")
+library(plotly)
+
+if(!require(zoo)) install.packages("zoo")
+library(zoo)
+
+if(!require(viridis)) install.packages("viridis")
+library(viridis)
+
+if(!require(brms)) install.packages("brms")
+library(brms)
+
+if(!require(purrr)) install.packages("purrr")
+library(purrr)
+
+if(!require(MASS)) install.packages("MASS")
+library(MASS)
+
+if(!require(rstan)) install.packages("rstan")
+library(rstan)
+
+if(!require(ggdist)) install.packages("ggdist")
+library(ggdist)
+
+if(!require(bayestestR)) install.packages("bayestestR")
+library(bayestestR)
+
+if(!require(posterior)) install.packages("posterior")
+library(posterior)
+
+if(!require(distributional)) install.packages("distributional")
+library(distributional)
+
+if(!require(cowplot)) install.packages("cowplot")
+library(cowplot)
+
+if(!require(modelr)) install.packages("modelr")
+library(modelr)
+
+if(!require(purrr)) install.packages("purrr")
+library(purrr)
+
+if(!require(forcats)) install.packages("forcats")
+library(forcats)
+
+if(!require(tidybayes)) install.packages("tidybayes")
+library(tidybayes)
+
+if(!require(bayesplot)) install.packages("bayesplot")
+library(bayesplot)
+
+if(!require(BayesFactor)) install.packages("BayesFactor")
+library(BayesFactor)
+
+if(!require(patchwork)) install.packages("patchwork")
+library(patchwork)
+
+if(!require(scales)) install.packages("scales")
+library(scales)
+```
+
+## Theme plot
+
+This is the theme plot used all of the plots. Of course, each plot also has it's own idiosyncrasies but this is a good baseline. 
+
+```{r}
+theme_plot <- theme(axis.title.x = element_text(size = 15), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 15), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 15), legend.text = element_text(size = 15), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## Load fixations data
+
+This data contains every fixation for each participant for the automated driving periods. This is really only used for Figure 4 where the state spaces and fixations are described.
+
+```{r}
+# Setting digits to 15 mins that fixation duration s are not rounded to annoying precise. 
+options(digits = 15)
+fixations <- fread(file = here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/Eye data/fixations.csv"))
+```
+
+## Load entropy data
+
+This dataframe contains the processed entropy data - both stationary gaze entropy  and it's normalised versions (e and e.norm) alongside gaze transitions entropy and it's normalised form (gte.e and gte.norm). Only normalised forms are used in this analysis. 
+
+```{r}
+entropy.total <- fread(file = here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/Eye data/gaze entropy/Critical and Non-Critical/entropy.total.csv"))
+```
+
+## Load participant data
+
+The participant.info dataframe contains information such as age and driving information (number of years having a license, miles driven annually). This information will later be needed for modelling and it is added to the entropy dataframe now. 
+
+3 participants filtered from the dataset:
+
+*Participant 34*: did not follow task instructions throughout the drive. Therefore this person was removed.
+
+*Participant 39*: only has one observation for the N-back condition. This creates high variance in the effect of N-back which is actually caused by only having on observation for the analysis. This participant is thus removed. 
+
+*Participant 47*: eye tracking data for the no N-back condition was not collected properly, resulting in a high number of NAs for gaze transition entropy (there was gaze coordinate data to calculate fixations from). Therefore, this participant was removed.
+
+
+due to not following task instructions or eye tracking data not being recorded correctly. 
+
+Age, annual mileage, and years holding a license are all large numbers. Including these into a model which is effectively parameterised with 0s and 1s can cause numerical instability in the model. So these variables are mean centred (mean = 0) so that the models can converge during fitting. 
+
+```{r}
+# select demographic data such as age, annual miles driven, years with license
+participant.info <- read.csv(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/participant_info.csv")) %>%
+  dplyr::select(1:4, 7) %>%
+  dplyr::rename("age" = "ï..Age", "ppid" = "Participant.ID")
+
+# combine entropy dataframe with the participant information dataframe
+entropy.total <- merge(entropy.total, participant.info, by = c("ppid"))
+
+## remove participants - these participants didn't follow task instructions or eye tracking data was not collected properly
+entropy.total <- entropy.total %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(ppid != 34, ppid != 39, ppid != 47)
+
+# some of these variables are added into the models later. To maintain numerical stability, they are centre so that the mean is 0 
+entropy.total$age.c <- scale(entropy.total$age, center = T, scale = F)
+
+entropy.total$Approximate.Annual.Mileage..Miles.c <- scale(entropy.total$Approximate.Annual.Mileage..Miles., center = T, scale = F)
+
+entropy.total$No..of.years.holding.a.full.UK.driving.license.c <- scale(entropy.total$No..of.years.holding.a.full.UK.driving.license, center = T, scale = F)
+```
+
+## NASA-TLX
+
+This dataframe contains responses from the NASA TLX. We are only interested in the mental workload sub scale so the rest are filtered out. 
+
+```{r}
+nasa.tlx.mental <- fread(file = here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/NASA_TLX_scores.csv")) %>%
+  dplyr::mutate(n_back = case_when(task == "N-back" ~ TRUE,
+                                   task == "No N-back" ~ FALSE)) %>%
+  dplyr::filter(sub_scale == "mental_demand") %>%
+  dplyr::mutate(ppid = participant)
+```
+
+## NASA TLX model fitting
+
+*nasa.fit.1* is a maximal model analysing subjective workload as a function of N-back. The produces some transient chains which do not mix as well as they should. R-hats are all around 1 which is good, but this fit could be better. 
+
+*nasa.fit.2* is the same model but with the random N-back slopes removed. This improves convergence of the chains but fails to capture the variance in how people rate their subjective mental workload. It does a reasonable job of capturing the variance in people baseline scores but this could be improved. This instability is likely due to having on observation per participant per condition. 
+
+*nasa.fit.3* is a maximal model using priors for the intercept and slope parameter derived from Figalova et al (2023). This study used a slightly different variation of the N-back task (speed regulation N-back) however not many studies report N-back NASA-TLX scores for baseline and N-back task. Divergent transitions still occur. 
+
+*nasa.fit.4* is the model with just random intercepts with informative priors on the intercept and slope parameters. No issues with convergence this time. Posterior predictive check is okay - better for N-back versus no n-back. With only one observation per condition it is difficult to fit random slopes. *nasa.fit.4* is the model used for inference in the manuscript. 
+
+```{r}
+# fit 1 - maximal model - no priors
+nasa.fit.1 <- brm(data = nasa.tlx.mental %>%
+                    dplyr::filter(participant != 34, participant != 39, participant != 47),
+                  family = gaussian(), 
+                  control = list(adapt_delta = 0.99999999999),
+                 bf(converted_score ~ n_back + (n_back | participant)),
+                 iter = 10000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+
+print(summary(nasa.fit.1), digits = 5)
+
+# fit 2 - only random intercepts - helps with model convergence
+nasa.fit.2 <- brm(data = nasa.tlx.mental %>%
+                    dplyr::filter(participant != 34, participant != 39, participant != 47),
+                  family = gaussian(), 
+                  control = list(adapt_delta = 0.99999999999),
+                 bf(converted_score ~ n_back + (1 | participant)),
+                 iter = 10000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+
+print(summary(nasa.fit.2), digits = 5)
+pp_check(nasa.fit.2, type = "dens_overlay_grouped", group = "n_back", ndraws = 100) 
+
+# priors based on Figalova et al (2023)
+prior(normal(40, 20)) %>% 
+  parse_dist() %>% 
+  ggplot(aes(xdist = .dist_obj, y = prior)) + 
+  stat_halfeye(.width = c(.5, .99)) +
+  scale_y_discrete(NULL, breaks = NULL, expand = expansion(add = 0.1)) +
+  scale_x_continuous(expression(italic(p)(beta[1]))) +
+  theme_plot
+
+# fit 3 - maximal model with priors on intercept (no n-back) and slope parameter (subjective workload)
+nasa.fit.3 <- brm(data = nasa.tlx.mental %>%
+                    dplyr::filter(participant != 34, participant != 39, participant != 47),
+                  family = gaussian(), 
+                  control = list(adapt_delta = 0.99999999999),
+                 bf(converted_score ~ n_back + (n_back | participant)),
+                 prior = c(prior(normal(36, 20), class = Intercept),
+                           prior(normal(40, 20), class = b)),
+                 iter = 10000, warmup = 2000, chains = 4, cores = 2, seed = 13)
+
+print(summary(nasa.fit.3), digits = 5)
+pp_check(nasa.fit.3, type = "dens_overlay_grouped", group = "n_back", ndraws = 100) 
+
+# fit 4 - random intercepts with priors on intercept (no n-back) and slope parameter (subjective workload)
+nasa.fit.4 <- brm(data = nasa.tlx.mental %>%
+                    dplyr::filter(participant != 34, participant != 39, participant != 47),
+                  family = gaussian(), 
+                  control = list(adapt_delta = 0.99999999999),
+                 bf(converted_score ~ n_back + (1 | participant)),
+                 prior = c(prior(normal(36, 20), class = Intercept),
+                           prior(normal(40, 20), class = b)),
+                 iter = 10000, warmup = 2000, chains = 4, cores = 2, seed = 13)
+
+print(summary(nasa.fit.4), digits = 5)
+
+pp_check(nasa.fit.4, type = "dens_overlay_grouped", group = "n_back", ndraws = 100) 
+```
+
+## Manuscript Figure 4 - fixations within their state spaces
+
+An example of the fixations for a trial. This is to demonstrate the theory beyond gaze transition entropy. The order of the fixations are coloured to indicate their order. The probability of a fixation being in a state space given is it in the current one is used alongside the probability of the total distribution of fixations.
+
+```{r}
+# maximum pitch and yaw coordinates
+maxY = max(fixations$pitch)
+maxX = max(fixations$yaw)
+
+# minimum pitch and yaw coordinates
+minY = min(fixations$pitch)
+minX = min(fixations$yaw)
+
+# example trial - this can be any trial
+example <- fixations %>%
+  dplyr::filter(trialid == "9_FALSE_6_3")
+
+# creating state spaces - cuts the x and y coordinates into 3 degree chunks 
+example <- example %>%
+  dplyr::mutate(x_range = cut(yaw, seq(minX, maxX, by = 3), right = FALSE)) %>%
+  dplyr::mutate(y_range = cut(pitch, seq(minX, maxY, by = 3), right = FALSE))
+
+# state space coordinates
+state_space_coordinates <- example %>%
+  dplyr::group_by(x_range, y_range) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::ungroup()  %>%
+  tidyr::complete(x_range, y_range) %>%
+  dplyr::mutate(state_space = row_number()) %>%
+  dplyr::mutate(x_range_2 = x_range, y_range_2 = y_range) %>%
+  tidyr::separate_wider_delim(x_range, ",", names = c("x_lower", "x_upper")) %>%
+  tidyr::separate_wider_delim(y_range, ",", names = c("y_lower", "y_upper")) %>%
+  dplyr::mutate(x_lower = str_replace_all(x_lower, "\\[|\\]", ""), x_upper = str_replace_all(x_upper, "\\(|\\)", "")) %>%
+  dplyr::mutate(y_lower = str_replace_all(y_lower, "\\[|\\]", ""), y_upper = str_replace_all(y_upper, "\\(|\\)", "")) %>%
+  dplyr::mutate(x_lower = as.numeric(x_lower), x_upper = as.numeric(x_upper), y_lower = as.numeric(x_lower), y_upper = as.numeric(x_upper))
+
+# plot the state space grids alongside the fixation coordinates 
+fixation_state_space <- ggplot() +
+  geom_vline(state_space_coordinates, mapping = aes(xintercept = x_upper), col = "grey") +
+  geom_hline(state_space_coordinates, mapping = aes(yintercept = y_upper), col = "grey") +
+  geom_vline(state_space_coordinates, mapping = aes(xintercept = x_lower), col = "grey") +
+  geom_hline(state_space_coordinates, mapping = aes(yintercept = y_lower), col = "grey") +
+  geom_point(example, mapping = aes(yaw, pitch, col = fixation_number), size = .6) +
+  scale_colour_continuous(name = "Fixation number", type = "viridis", breaks = c(25, 75, 125)) +
+  ylab("Pitch (°)") +
+  xlab("Yaw (°)") +
+  ylim(-20, 10) +
+  xlim(-40, 50) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.key.width = unit(1, 'cm'), legend.key.height = unit(.3, 'cm'))
+  
+# data saving   
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/fixation_state_space .tiff"), plot = fixation_state_space , width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript Figure 5: Correlation between N-back performance and age
+
+Previous research has highlighted that younger people perform better at N-back than older people (Ozturk et al, 2023). This previous research is in manual driving, however we can investigate whether there is any correlation between age and n-back performance. Using the brms package I compute a Bayesian correlation between age and N-back performance (see https://solomonkurz.netlify.app/blog/2019-02-16-bayesian-correlations-let-s-talk-options/ and https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations for more information). By standardising the variables, we can use regularising priors to rule out outrageous parameter estimates. *n_perform_fit_3* is the model used for inference in the manuscript. 
+
+```{r}
+# load n-back data
+n_back_performance <- fread(file = here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/Vehicle data/Processed data/n_back/n_back_performance.csv"))
+
+# average performance in the sample
+n_back_performance %>%
+  dplyr::summarise(mean_score = mean(percent_correct), sd_score = sd(percent_correct), min_score = min(percent_correct), max_score = max(percent_correct))
+
+# n-back performance model with standardised input variables
+n_back_performance <- n_back_performance %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(age_s = (as.numeric(age) - mean(as.numeric(age))) / sd(as.numeric(age)),
+                percent_correct_s = (as.numeric(percent_correct) - mean(as.numeric(percent_correct))) / sd(as.numeric(percent_correct)))
+
+# regularising priors
+prior(normal(0, 1)) %>% 
+  parse_dist() %>% 
+  ggplot(aes(xdist = .dist_obj, y = prior)) + 
+  stat_halfeye(.width = c(.5, .99)) +
+  scale_y_discrete(NULL, breaks = NULL, expand = expansion(add = 0.1)) +
+  scale_x_continuous(expression(italic(p)(beta[1]))) +
+  theme_plot
+
+# model fitting
+n_perform_fit3 <- brm(data = n_back_performance,
+                      family = gaussian(),
+                      percent_correct_s ~ age_s,
+                      prior = c(prior(normal(0, 1), class = Intercept),
+                                prior(normal(0, 1), class = b),
+                                prior(normal(0, 1), class = sigma)),
+                      iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+
+print(summary(n_perform_fit3), digits = 5)
+describe_posterior(n_perform_fit3)
+
+# plot predicting mean and confidence level 
+n_back_age_performance <- n_back_performance %>%
+  data_grid(age_s = seq_range(age_s, n = 37)) %>%
+  add_epred_draws(n_perform_fit3) %>%
+  ggplot(aes(x = age_s, y = percent_correct_s)) +
+  stat_lineribbon(aes(y = .epred)) +
+  geom_point(data = n_back_performance) +
+  scale_fill_brewer("Posterior predictive interval")+
+  xlab("Age (mean centred)") +
+  ylab("Percent correct (mean centred)") +
+  ylim(-2.5, 2.5) +
+  xlim(-2, 2.5) +
+  theme_plot +
+  theme(legend.position = c(.53, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 10), axis.title.y = element_text(size = 10), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 10), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# plot saving
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/n_back_age_performance.tiff"), plot = n_back_age_performance , width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Model fit for stationary gaze entropy
+
+*sge.fit.3* is the model fit used in the manuscript. It is a Bayesian distributional multilevel model predicting the mean and standard deviation of stationary gaze entropy as a function of n-back, lead vehicle, and their interaction. 
+
+Informative priors are placed on the intercept parameter, and the parameter modelling the influence of n-back (n_backTRUE). The intercept represents stationary gaze entropy without a lead vehicle and with no n-back. As normalised stationary gaze entropy can only range between 0-1, this prior aims to make values outside of this range extremely implausible. 
+
+Regarding the influence of N-back  on stationary gaze entropy - Pillai et al (2022) found that  stationary gaze entropy decreases in 2-back versus 0-back conditions during manual driving. We also know that the SD of horizontal gaze reduces during high mental workload (Reimer, 2009; Reimer et al, 2010; Wang et al, 2014) and the SD of horizontal gaze and stationary gaze entropy are correlated, we can predict a reduction. The size of this reduction is largely uncertain thus we propose a reduction of 10 percentage point. As highlighted by the *sge.fit.3.0.nback*, the size and variance of this effect does not change if we centre the prior on 0 (relative uncertainty regarding the direction of the effect). Hence the prior is not overpowering data in this model. 
+
+Regularising priors are placed on the other remaining parameters to rule out implausible values.  
+
+```{r}
+## fit 3 random n-back slope for sigma
+sge.fit.3 <- brm(data = entropy.total %>%
+                   tidyr::drop_na() %>%
+                   dplyr::filter(ppid != 34, ppid != 39, ppid != 47),
+                 family = gaussian(),
+                 bf(e.norm ~ n_back * lead + (1 + n_back | ppid), sigma ~ n_back * lead + (1 + n_back | ppid)),
+                 prior = c(prior(normal(.5, .2), class = Intercept),
+                           prior(normal(-.1, .2), class = b, coef = "n_backTRUE"),
+                           prior(normal(0, .2), class = b, coef = "leadTRUE"),
+                           prior(normal(0, .2), class = b, coef = "n_backTRUE:leadTRUE"),
+                           prior(normal(0, .5), class = b, dpar = "sigma", coef = "n_backTRUE"),
+                           prior(normal(0, .5), class = b, dpar = "sigma", coef = "leadTRUE"),
+                           prior(normal(0, .5), class = b, dpar = "sigma", coef = "n_backTRUE:leadTRUE"),
+                           prior(cauchy(0, 2), class = sd),
+                           prior(lkj(2), class = cor)),
+                                   iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+print(summary(sge.fit.3), digits = 5)
+
+# centering n-back parameter on 0 rather than -.1
+sge.fit.3.0.nback <- brm(data = entropy.total %>%
+                   tidyr::drop_na() %>%
+                   dplyr::filter(ppid != 34, ppid != 39, ppid != 47),
+                 family = gaussian(),
+                 bf(e.norm ~ n_back * lead + (1 + n_back | ppid), sigma ~ n_back * lead + (1 + n_back | ppid)),
+                 prior = c(prior(normal(.5, .2), class = Intercept),
+                           prior(normal(0, .2), class = b, coef = "n_backTRUE"),
+                           prior(normal(0, .2), class = b, coef = "leadTRUE"),
+                           prior(normal(0, .2), class = b, coef = "n_backTRUE:leadTRUE"),
+                           prior(normal(0, .5), class = b, dpar = "sigma", coef = "n_backTRUE"),
+                           prior(normal(0, .5), class = b, dpar = "sigma", coef = "leadTRUE"),
+                           prior(normal(0, .5), class = b, dpar = "sigma", coef = "n_backTRUE:leadTRUE"),
+                           prior(cauchy(0, 2), class = sd),
+                           prior(lkj(2), class = cor)),
+                                   iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+
+print(summary(sge.fit.3.0.nback), digits = 5)
+```
+
+## Manuscrip Figure 6 - Posterior distribution for mu parameters
+
+The following chunk extracts draws from the posterior distribution for each parameter, and plots them relative to the null effect (dashed line). This is to illustrate whether the most probably parameter values include the null effect. The half eye plots provide intervals for the 50% (thick line) and 95% (thin line) most probable values. 
+
+```{r}
+# identifying model variable that I need to extract from the model
+get_variables(sge.fit.3)
+
+# posterior for  beta_0 parameter (average stationary gaze entropy when there is no n-back or lead vehicle)
+beta_0 <- sge.fit.3 %>%
+  spread_draws(b_Intercept) %>%
+  ggplot(aes(x = b_Intercept)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  ylab("") +
+  xlab(expression(italic(p(beta[0] ~ "|" ~ italic(E))))) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# posterior distribution for the beta_N parameter i.e. the average change in stationary gaze entropy without a lead vehicle and in the presence of n-back
+beta_n <- sge.fit.3 %>%
+  spread_draws(b_n_backTRUE) %>%
+  ggplot(aes(x = b_n_backTRUE)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(beta[N] ~ "|" ~ italic(E))))) +
+  xlim(-.16, 0) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+
+# posterior distribution for the beta_L parameter i.e. average change in stationary gaze entropy when a lead vehicle is present (without n-back)
+beta_l <- sge.fit.3 %>%
+  spread_draws(b_leadTRUE) %>%
+  ggplot(aes(x = b_leadTRUE)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(beta[L] ~ "|" ~ italic(E))))) +
+  scale_x_continuous(limits = c(-.05, 0), breaks = c(-.04, -.02, 0)) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+
+# posterior distribution for beta_NL parameter i.e. interaction between n-back and lead vehicle. 
+beta_nl <- sge.fit.3 %>%
+  spread_draws(`b_n_backTRUE:leadTRUE`) %>%
+  ggplot(aes(x = `b_n_backTRUE:leadTRUE`)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(beta[NL] ~ "|" ~ italic(E))))) +
+  xlim(-.02, .04) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# combinding plots into one big plot 
+sge.plot <- (beta_0 | beta_n) / (beta_l | beta_nl)
+
+# saving final plot
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.mu.tiff"), plot = sge.plot, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript Figure 7 - Posterior distribution for sigma parameters
+
+The following chunk is almost identical to the previous except this is for the sigma parameters. This is highlights within the spread_draws() function which focuses on the *b_sigma* parameters rather than just *b_*. 
+
+```{r}
+# model variable 
+get_variables(sge.fit.3)
+
+# beta_0
+alpha_0 <- sge.fit.3 %>%
+  spread_draws(b_sigma_Intercept) %>%
+  ggplot(aes(x = b_sigma_Intercept)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  ylab("") +
+  scale_x_continuous(limits = c(-3.4, -2.7), labels = label_number(accuracy = 0.01)) +
+  xlab(expression(italic(p(alpha[0] ~ "|" ~ italic(E))))) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# beta_N
+alpha_n <- sge.fit.3 %>%
+  spread_draws(b_sigma_n_backTRUE) %>%
+  ggplot(aes(x = b_sigma_n_backTRUE)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(alpha[N] ~ "|" ~ italic(E))))) +
+  xlim(-.65, .3) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+
+# beta_L
+alpha_l <- sge.fit.3 %>%
+  spread_draws(b_sigma_leadTRUE) %>%
+  ggplot(aes(x = b_sigma_leadTRUE)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(alpha[L] ~ "|" ~ italic(E))))) +
+  scale_x_continuous(limits = c(-.30, .5), labels = label_number(accuracy = 0.01)) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+
+# beta_NL
+alpha_nl <- sge.fit.3 %>%
+  spread_draws(`b_sigma_n_backTRUE:leadTRUE`) %>%
+  ggplot(aes(x = `b_sigma_n_backTRUE:leadTRUE`)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(alpha[NL] ~ "|" ~ italic(E))))) +
+  xlim(-.5, .5) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# combining plots for saving
+sge.plot.sigma <- (alpha_0 | alpha_n) / (alpha_l | alpha_nl)
+
+# saving plots
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.sigma.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript Figure 8: overlying raw data on posterior predicitive intervals
+
+Next we create a plot highlighting the raw data and overlay it onto the model predictions. This provides a nice visualisation of whether sigma does change as function of n-back/lead vehicle presence. 
+
+You can also notice that there is more data in the lead vehicle panel versus the no lead vehicle panel. This is because there were more "critical" trials in comparison to non-critical trials.
+
+*add_epred_draws()* adds draws from the expectation of the posterior predictive distribution. Provides the expected means from the model.
+
+*add_predicted_draws()* adds draws from the posterior predictive distribution. This is draws from the posterior Normal(mu, sigma) and thus the variance will be much higher.  
+
+For more information on this, see (https://www.andrewheiss.com/blog/2022/09/26/guide-visualizing-types-posteriors/#normal-gaussian-model).
+
+```{r}
+# creates long format data frame of each participant within each condition
+grid = entropy.total %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(ppid != 34, ppid != 39, ppid != 47) %>%
+  data_grid(n_back, lead, ppid)
+
+# extract predicted means 
+means = grid %>%
+  add_epred_draws(sge.fit.3)
+
+# extract draws from the posterior distribution
+preds = grid %>%
+  add_predicted_draws(sge.fit.3)
+
+# labels
+l.labs <- c("No lead vehicle", "Lead vehicle")
+names(l.labs) <- c("FALSE", "TRUE")
+
+# posterior conditional means for n-back/no n-back and posterior predictive intervals
+posterior.mean.intervals.sge <- entropy.total %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(ppid != 34, ppid != 39, ppid != 47) %>%
+  ggplot(aes(x = e.norm, y = n_back)) +
+  stat_pointinterval(aes(x = .epred), data = means, .width = c(.50, .95), position = position_nudge(y = -0.3)) +
+  stat_interval(aes(x = .prediction), data = preds, .width = c(.50, .80, .95, .99)) +
+  geom_jitter(data = entropy.total %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(ppid != 34, ppid != 39, ppid != 47), height = .03, alpha = .2) +
+  scale_y_discrete(labels = c('No N-back','N-back')) +
+  scale_color_brewer("Posterior predictive interval") +
+  xlab(expression("Predicted" ~ italic(H[s]))) +
+  ylab("Secondary task") +
+  scale_x_continuous(breaks = seq(0, .6, .1), labels = label_number(accuracy = 0.01)) +
+  facet_wrap(~ lead, labeller = labeller(lead = l.labs),  ncol = 1) +
+  theme_plot +
+  theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# plot saving
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.mean.intervals.sge.n.tiff"), plot = posterior.mean.intervals.sge, width = 16, height = 10, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript Figure 9 part 1: Calculating heterogenity of the n-back effect for SGE 
+
+Whilst the effects of n-back on SGE on average is a reduction of 10 percentage points, the model predicts substantial variation in this average effect. 
+
+This chunk creates a strip plot which includes - average effect of n-back on SGE (black line), 95% credible intervals (cyan dashed lines), 95% heterogeneity intervals (blue lines), and the individual sample effects (cyan dots).
+
+```{r}
+# CI interval for average effect
+bayes.credible.intervals <- as.data.frame(summary(sge.fit.3)[["fixed"]][3:4])
+
+# individual effects
+ppid.effects <- as.data.frame(ranef(sge.fit.3)) %>%
+  dplyr::select(ppid.Estimate.n_backTRUE) %>%
+  dplyr::mutate(ranef = ppid.Estimate.n_backTRUE + summary(sge.fit.3)[["fixed"]][3,1])
+
+ppid.effects$x <- "x"
+
+# calculate individual effects
+ran.effects <- summary(sge.fit.3)[["random"]][["ppid"]][2,1]
+
+# computes strip plot of the individual effects alongside the average, the credible intervals, and heterogenity intervals
+HI_effect_2_back_plot <- ggplot() +
+  geom_jitter(ppid.effects, mapping = aes(x = x, y = ranef), width = 0.01, height = 0, size = 4,
+              shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) +
+  theme_plot +
+  scale_y_continuous(breaks = round(seq(-.3, .3, 0.05), digits = 2)) +
+  ylab(expression("N-back effect on" ~ mu ~ "of" ~ italic(H[s]) ~ "(% point units)")) +
+  xlab("") + 
+  geom_hline(aes(yintercept = bayes.credible.intervals$`l-95% CI`[3], linetype ="95% CI"), size = 1.5,  color = viridis(5)[3]) +
+  geom_hline(aes(yintercept = bayes.credible.intervals$`u-95% CI`[3], linetype="95% CI"), size = 1.5,  color = viridis(5)[3]) +
+  geom_hline(aes(yintercept = summary(sge.fit.3)[["fixed"]][3,1], linetype = "beta_1"), size = 1.5, color = "black") +
+  geom_hline(aes(yintercept = summary(sge.fit.3)[["fixed"]][3,1] + 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
+  geom_hline(aes(yintercept = summary(sge.fit.3)[["fixed"]][3,1] - 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
+  scale_linetype_manual(name = " ", values = c(2, 1, 1), labels = c("95% CI", "95% HI", expression(beta[N])), guide = guide_legend(override.aes = list(color = c(viridis(5)[3], viridis(5)[2], "black")))) +
+  scale_fill_manual(name = "Parameter", values = c(viridis(5)[2])) +
+  theme(legend.position = c(.22, .85), legend.key = element_blank(), legend.key.width = unit(0.2, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) +
+  coord_flip()  
+
+#ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/HI_effect_2_back.tiff"), plot = HI_effect_2_back_plot, width = 8, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+
+# relative size of  heterogenity effect for 2-back - more than .5 is note worthy (variance in the effect is half the size of the average effect)
+summary(sge.fit.3)[["random"]][["ppid"]][2,1] / summary(sge.fit.3)[["fixed"]][3,1]
+
+summary(sge.fit.3)[["fixed"]][3,1] + 1.96 * ran.effects
+summary(sge.fit.3)[["fixed"]][3,1] - 1.96 * ran.effects
+```
+
+## Manuscript 9 part 2: Proportion of population who has reduced SGE during n-back
+
+With an estimate of the average effect of SGE and the standard deviation of the effect on SGE, we can construct a distribution that models the population level distribution for the effect of N-back on SGE - 92% of the population would experience a decrease in stationary gaze entropy as a function of n-back. 
+
+```{r}
+# Proportion of people whos SGE entrpy reduces
+mean <- summary(sge.fit.3)[["fixed"]][3,1] # Estimated n-back slope for the average person (fixed effect)
+sd <- summary(sge.fit.3)[["random"]][["ppid"]][2,1] # Estimated heterogeneity (in SD units) (random effect)
+ub <- 0 
+lb <- -1
+# create an interval ranging from -4 to 4 and multiply by SD. 
+# This gives values falling within +/- 4SD. Then add mean. 
+x <- seq(-4,4,length=100)*sd + mean 
+
+
+# put the above into a dataframe along with the density and lower and upper bounds 
+# set upper bound to 0 so we can compute proportion of slope values under this number
+dendf <- data.frame(
+x =  seq(-4,4,length=100)*sd + mean,
+hx = dnorm(x,mean,sd), 
+ub = 0, lb = -1)
+
+# compute area under the curve with upper bound at 0 i.e. what proportion of  people have reduced SGE when completing n-back
+area <- pnorm(ub, mean, sd) - pnorm(lb, mean, sd) 
+
+# proportion of population who decrease in SGE
+signif(area, digits=2) * 100
+
+densplot <- ggplot(dendf, aes(x=x)) +
+  geom_path(data = dendf, aes(x=x, y=hx), alpha = 1, color = viridis(5)[2], size = 1)
+
+densplot_dat <- ggplot_build(densplot)$data[[1]]
+
+# plotting the distribution for people who would follow average trends
+proportion_pop_2_back <- densplot + 
+  geom_area(data = subset(densplot_dat, x < 0), aes(x=x, y=y), fill = viridis(5)[2], alpha = .4, color = viridis(5)[2]) +
+  xlab(expression("N-back effect on" ~ mu ~ "of" ~ italic(H[s]) ~ "(% point units)")) +
+  ylab("") +
+  scale_x_continuous(limits = c(-.4, .25), expand = c(0, 0), labels = label_number(accuracy = 0.01)) +
+  scale_y_continuous(limits = c(0, 6.5), expand = c(0, 0)) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+signif(area, digits=2) * 100
+
+# sticking the strip plot and the population distribution plot together for data saving
+population.plot <- HI_effect_2_back_plot | proportion_pop_2_back
+
+# data saving
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/proportion_pop_2_back.tiff"), plot = population.plot, width = 16, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Model fit for gaze transition entropy
+
+*gte.fit.6* is the model fit used in the manuscript for investigating the effect of n-back and lead vehicle on gaze transition entropy. It is a Bayesian distributional multilevel model predicting the mean and standard deviation of gaze transition entropy as a function of n-back, lead vehicle, and their interaction.
+
+Results from Schieber & Gilland (2008) help provide concrete priors for baseline gaze transition entropy values alongside expected changes as a function of N-back. Schieber & Gilland (2008) found that baseline normalised GTE values were around .60 and decreased by around .05 when completing the n-back. I cannot be certain of these specific values because they are not stated in the manuscript - I am only guessing from looking at the graph. 
+
+These parameter values have been used to centre the prior distributions for the intercept (GTE for no lead and no n-back) and the effect of N-back on GTE.
+
+```{r}
+# fit 6 - modelling sigma with random n-back slope and lead vehicle slope
+gte.fit.6 <- brm(data = entropy.total %>%
+                   tidyr::drop_na() %>%
+                   dplyr::filter(ppid != 34, ppid != 39, ppid != 47),
+                 family = gaussian(),
+                 bf(gte.norm ~ n_back * lead + (1 + n_back | ppid), 
+                    sigma ~ n_back * lead + (1 + n_back | ppid)),
+                 prior = c(prior(normal(.55, .2), class = Intercept),
+                           prior(normal(-.05, .2), class = b, coef = "n_backTRUE"),
+                           prior(normal(0, .2), class = b, coef = "leadTRUE"),
+                           prior(normal(0, .2), class = b, coef = "n_backTRUE:leadTRUE"),
+                           prior(cauchy(0, 2), class = sd),
+                           prior(lkj(2), class = cor)), 
+                 iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+
+summary(gte.fit.6)
+describe_posterior(gte.fit.6)
+```
+
+## Manuscript Figure 10 - Visualing posterior distribution for mu parameters - GTE
+
+Highlights the posterior distributions for the main parameters for predicting mu in the model for gaze transition entropy. 
+
+```{r}
+# beta_0
+beta_0 <- gte.fit.6 %>%
+  spread_draws(b_Intercept) %>%
+  ggplot(aes(x = b_Intercept)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  ylab("") +
+  xlab(expression(italic(p(beta[0] ~ "|" ~ italic(E))))) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# beta_N
+beta_n <- gte.fit.6 %>%
+  spread_draws(b_n_backTRUE) %>%
+  ggplot(aes(x = b_n_backTRUE)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(beta[N] ~ "|" ~ italic(E))))) +
+  scale_x_continuous(limits = c(-.045, .02), breaks = c(-.04, -.02, 0, .02),labels = label_number(accuracy = 0.01)) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+
+# beta_L
+beta_l <- gte.fit.6 %>%
+  spread_draws(b_leadTRUE) %>%
+  ggplot(aes(x = b_leadTRUE)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(beta[L] ~ "|" ~ italic(E))))) +
+  scale_x_continuous(limits = c(-.004, .006), breaks = c(-.003, 0, .003)) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+
+# beta_NL
+beta_nl <- gte.fit.6 %>%
+  spread_draws(`b_n_backTRUE:leadTRUE`) %>%
+  ggplot(aes(x = `b_n_backTRUE:leadTRUE`)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(beta[NL] ~ "|" ~ italic(E))))) +
+  xlim(-.012, .004) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+gte.plot <- (beta_0 | beta_n) / (beta_l | beta_nl)
+
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.mu.gte.tiff"), plot = gte.plot, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript Figure 11 - Visualing posterior distribution for sigma parameters - GTE
+
+Posterior distributions for parameters predicting sigma of gaze transition entropy. 
+
+```{r}
+# model variable 
+get_variables(gte.fit.6)
+
+# beta_0
+alpha_0 <- gte.fit.6 %>%
+  spread_draws(b_sigma_Intercept) %>%
+  ggplot(aes(x = b_sigma_Intercept)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  ylab("") +
+  scale_x_continuous(limits = c(-5.1, -4), breaks = c(-5, -4.7, -4.4, -4.1),labels = label_number(accuracy = 0.01)) +
+  xlab(expression(italic(p(alpha[0] ~ "|" ~ italic(E))))) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# beta_N
+alpha_n <- gte.fit.6 %>%
+  spread_draws(b_sigma_n_backTRUE) %>%
+  ggplot(aes(x = b_sigma_n_backTRUE)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(alpha[N] ~ "|" ~ italic(E))))) +
+  xlim(-.15, .9) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# beta_L
+alpha_l <- gte.fit.6 %>%
+  spread_draws(b_sigma_leadTRUE) %>%
+  ggplot(aes(x = b_sigma_leadTRUE)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(alpha[L] ~ "|" ~ italic(E))))) +
+  xlim(-.1, .7) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+# beta_NL
+alpha_nl <- gte.fit.6 %>%
+  spread_draws(`b_sigma_n_backTRUE:leadTRUE`) %>%
+  ggplot(aes(x = `b_sigma_n_backTRUE:leadTRUE`)) +
+  stat_halfeye(.width = c(.5, .95)) +
+  geom_vline(mapping = aes(xintercept = 0), linetype = "dashed") +
+  ylab("") +
+  xlab(expression(italic(p(alpha[NL] ~ "|" ~ italic(E))))) +
+  scale_x_continuous(limits = c(-.8, .3),labels = label_number(accuracy = 0.01)) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+
+sge.plot.sigma <- (alpha_0 | alpha_n) / (alpha_l | alpha_nl)
+
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.sigma.gte.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript Figure 12: overlying raw data on posterior predicitive intervals for gaze transition entropy model
+
+Identical to manuscript Figure 8 but for the gaze transition entropy model.
+
+```{r}
+grid = entropy.total %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(ppid != 34, ppid != 39, ppid != 47) %>%
+  data_grid(n_back, lead, ppid)
+
+means = grid %>%
+  add_epred_draws(gte.fit.6)
+
+preds = grid %>%
+  add_predicted_draws(gte.fit.6)
+
+# labels
+l.labs <- c("No lead vehicle", "Lead vehicle")
+names(l.labs) <- c("FALSE", "TRUE")
+
+# posterior conditional means for n-back/no n-back and posterior predictive intervals
+posterior.mean.intervals.gte <- entropy.total %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(ppid != 34, ppid != 39, ppid != 47) %>%
+  ggplot(aes(x = gte.norm, y = n_back)) +
+  stat_pointinterval(aes(x = .epred), data = means, .width = c(.50, .95), position = position_nudge(y = -0.3)) +
+  stat_interval(aes(x = .prediction), data = preds, .width = c(.50, .80, .95, .99)) +
+  geom_jitter(data = entropy.total %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(ppid != 34, ppid != 39, ppid != 47), height = .03, alpha = .2) +
+  scale_y_discrete(labels = c('No N-back','N-back')) +
+  scale_color_brewer("Posterior predictive interval") +
+  xlab(expression("Predicted" ~ italic(H[t]))) +
+  ylab("Secondary task") +
+  scale_x_continuous(breaks = seq(0, .2, .05)) +
+  facet_wrap(~ lead, labeller = labeller(lead = l.labs),  ncol = 1) +
+  #theme_plot +
+  theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.mean.intervals.gte.n.tiff"), plot = posterior.mean.intervals.gte, width = 16, height = 10, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript Figure 13 part 1: Calculating heterogenity of the n-back effect for GTE
+
+Here we compute the heterogenity for the effect of N-back on gaze transition entropy. Many individuals have null effects or reversals of the average causal effect. Highlights very high variance in the effect of N-back on GTE. 
+
+```{r}
+# credible interval of average
+bayes.credible.intervals <- as.data.frame(summary(gte.fit.6)[["fixed"]][3:4])
+
+# individual effects
+ppid.effects <- as.data.frame(ranef(gte.fit.6)) %>%
+  dplyr::select(ppid.Estimate.n_backTRUE) %>%
+  dplyr::mutate(ranef = ppid.Estimate.n_backTRUE + summary(gte.fit.6)[["fixed"]][3,1])
+
+ppid.effects$x <- "x"
+
+# calculate individual effects
+ran.effects <- summary(gte.fit.6)[["random"]][["ppid"]][2,1]
+
+HI_effect_2_back_plot_mu <- ggplot() +
+  geom_jitter(ppid.effects, mapping = aes(x = x, y = ranef), width = 0.01, height = 0, size = 4,
+              shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) +
+  theme_plot +
+  #scale_y_continuous(breaks = round(seq(-.3, .3, 0.05), digits = 2)) +
+  ylab(expression("N-back effect on" ~ mu ~ "of" ~ italic(H[t]) ~ "(% point units)")) +
+  xlab("") + 
+  scale_y_continuous(limits = c(-.09, .06), breaks = c(-.05, 0, .05), labels = label_number(accuracy = 0.01)) +
+  geom_hline(aes(yintercept = bayes.credible.intervals$`l-95% CI`[3], linetype ="95% CI"), size = 1.5,  color = viridis(5)[3]) +
+  geom_hline(aes(yintercept = bayes.credible.intervals$`u-95% CI`[3], linetype="95% CI"), size = 1.5,  color = viridis(5)[3]) +
+  geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][3,1], linetype = "beta_1"), size = 1.5, color = "black") +
+  geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][3,1] + 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
+  geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][3,1] - 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
+    scale_linetype_manual(name = " ", values = c(2, 1, 1), labels = c("95% CI", "95% HI", expression(beta[N])), guide = guide_legend(override.aes = list(color = c(viridis(5)[3], viridis(5)[2], "black")))) +
+  scale_fill_manual(name = "Parameter", values = c("dodgerblue2")) +
+  theme(legend.position = c(.27, .85), legend.key = element_blank(), legend.key.width = unit(0.2, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) +
+  coord_flip()  
+
+#ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/HI_effect_2_back_plot_mu.tiff"), plot = HI_effect_2_back_plot_mu, width = 8, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+
+# relative size of  heterogenity effect for 2-back on mu
+summary(gte.fit.6)[["random"]][["ppid"]][2,1] / summary(gte.fit.6)[["fixed"]][3,1]
+
+# relative size of  heterogenity effect for 2-back on sigma
+summary(gte.fit.6)[["random"]][["ppid"]][4,1] / summary(gte.fit.6)[["fixed"]][6,1]
+
+summary(gte.fit.6)[["fixed"]][3,1] + 1.96 * ran.effects
+summary(gte.fit.6)[["fixed"]][3,1] - 1.96 * ran.effects
+```
+
+## Manuscript Figure 13 part 2: proportion of population who follow average GTE
+
+The model predicts that only 66% of the population will have reduced gaze transition entropy when performing N-back during hands-off Level 2 automated driving. 
+
+```{r}
+# Proportion of people whos SD of horizontal gaze reduces
+mean <- summary(gte.fit.6)[["fixed"]][3,1] # Estimated valence slope for the average person (fixed effect)
+sd <- summary(gte.fit.6)[["random"]][["ppid"]][2,1] # Estimated heterogeneity (in SD units) (random effect)
+ub <- 0 
+lb <- -10
+# create an interval ranging from -4 to 4 and multiply by SD. 
+# This gives values falling within +/- 4SD. Then add mean. 
+x <- seq(-4,4,length=100)*sd + mean 
+
+
+# put the above into a dataframe along with the density and lower and upper bounds 
+# set ub (upper bound) to 0 so we can compute proportion of slope values under this number
+dendf <- data.frame(
+x =  seq(-4,4,length=100)*sd + mean,
+hx = dnorm(x,mean,sd), 
+ub = 0, lb = -10)
+
+# compute area under the curve with upper bound at 0 i.e. what proportion of  people have reduced SGE when completing n-back
+area <- pnorm(ub, mean, sd) - pnorm(lb, mean, sd) 
+signif(area, digits=2) * 100
+
+densplot <- ggplot(dendf, aes(x=x)) +
+  geom_path(data = dendf, aes(x=x, y=hx), alpha = 1, color = viridis(5)[2], size = 1)
+
+densplot_dat <- ggplot_build(densplot)$data[[1]]
+
+proportion_pop_2_back_gte <- densplot + 
+  geom_area(data = subset(densplot_dat, x < 0), aes(x=x, y=y), fill = viridis(5)[2], alpha = .4, color = viridis(5)[2]) +
+  xlab(expression("N-back effect on" ~ mu ~ "of" ~ italic(H[t]) ~ "(% point units)")) +
+  ylab("") +
+  scale_x_continuous(limits = c(-.16, .15), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 12), expand = c(0, 0)) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+population.plot.gte <- HI_effect_2_back_plot_mu | proportion_pop_2_back_gte
+
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/proportion_pop_2_back_gte.tiff"), plot = population.plot.gte, width = 16, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript Figure 14 part 1: Heterogenity effects of GTE on sigma parameters
+
+Because there was an effect of N-back on the within-participants variance of gaze transition entropy, we now produce a strip plot investigating the effect of n-back on sigma. This effect is far more consistent across the sample, with only a few participants having decreases in sigma as a function of n-back. 
+
+```{r}
+# credible interval of average
+bayes.credible.intervals <- as.data.frame(summary(gte.fit.6)[["fixed"]][3:4])
+
+# individual effects
+ppid.effects <- as.data.frame(ranef(gte.fit.6)) %>%
+  dplyr::select(ppid.Estimate.sigma_n_backTRUE) %>%
+  dplyr::mutate(ranef = ppid.Estimate.sigma_n_backTRUE + summary(gte.fit.6)[["fixed"]][6,1])
+
+ppid.effects$x <- "x"
+
+# calculate individual effects
+ran.effects <- summary(gte.fit.6)[["random"]][["ppid"]][4,1]
+
+HI_effect_2_back_plot_sigma <- ggplot() +
+  geom_jitter(ppid.effects, mapping = aes(x = x, y = ranef), width = 0.01, height = 0, size = 4,
+              shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) +
+  theme_plot +
+  ylab(expression("N-back effect on" ~ sigma ~ "of" ~ italic(H[t]))) +
+  xlab("") + 
+  scale_y_continuous(breaks = c(-.5, 0, .5, 1), labels = label_number(accuracy = 0.01)) +
+  geom_hline(aes(yintercept = bayes.credible.intervals$`l-95% CI`[6], linetype ="95% CI"), size = 1.5,  color = viridis(5)[3]) +
+  geom_hline(aes(yintercept = bayes.credible.intervals$`u-95% CI`[6], linetype="95% CI"), size = 1.5,  color = viridis(5)[3]) +
+  geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][6,1], linetype = "beta_1"), size = 1.5, color = "black") +
+  geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][6,1] + 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
+  geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][6,1] - 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
+    scale_linetype_manual(name = " ", values = c(2, 1, 1), labels = c("95% CI", "95% HI", expression(alpha[N])), guide = guide_legend(override.aes = list(color = c(viridis(5)[3], viridis(5)[2], "black")))) +
+  scale_fill_manual(name = "Parameter", values = c("dodgerblue2")) +
+  theme(legend.position = c(.204, .85), legend.key = element_blank(), legend.key.width = unit(0.2, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) +
+  coord_flip()  
+
+# relative size of  heterogenity effect for 2-back on mu
+summary(gte.fit.6)[["random"]][["ppid"]][2,1] / summary(gte.fit.6)[["fixed"]][3,1]
+
+# relative size of  heterogenity effect for 2-back on sigma
+summary(gte.fit.6)[["random"]][["ppid"]][4,1] / summary(gte.fit.6)[["fixed"]][6,1]
+
+summary(gte.fit.6)[["fixed"]][6,1] + 1.96 * ran.effects
+summary(gte.fit.6)[["fixed"]][6,1] - 1.96 * ran.effects
+```
+
+## Manuscript Figure 14 part 2: Proportion of population where sigma of GTE decreases in the presence of n-back
+
+As was done for the effect of GTE on mu, a distribution is constructed highlighting the percentage of the population who would show similar effects to the average effect of GTE on sigma. 
+
+```{r}
+# Proportion of people whos SD of horizontal gaze reduces
+mean <- summary(gte.fit.6)[["fixed"]][6,1] # Estimated valence slope for the average person (fixed effect)
+sd <- summary(gte.fit.6)[["random"]][["ppid"]][4,1] # Estimated heterogeneity (in SD units) (random effect)
+ub <- 4
+lb <- 0
+# create an interval ranging from -4 to 4 and multiply by SD. 
+# This gives values falling within +/- 4SD. Then add mean. 
+x <- seq(-4,4,length=100)*sd + mean 
+
+
+# put the above into a dataframe along with the density and lower and upper bounds 
+# set ub (upper bound) to 0 so we can compute proportion of slope values under this number
+dendf <- data.frame(
+x =  seq(-4,4,length=100)*sd + mean,
+hx = dnorm(x,mean,sd),ub = 4, lb = 0)
+
+# compute area under the curve with upper bound at 0 i.e. what proportion of  people have reduced SGE when completing n-back
+area <- pnorm(ub, mean, sd) - pnorm(lb, mean, sd) 
+signif(area, digits=2) * 100
+
+densplot <- ggplot(dendf, aes(x=x)) +
+  geom_path(data = dendf, aes(x=x, y=hx), alpha = 1, color = viridis(5)[2], size = 1)
+
+densplot_dat <- ggplot_build(densplot)$data[[1]]
+
+proportion_pop_2_back_gte_sigma <- densplot + 
+  geom_area(data = subset(densplot_dat, x > 0), aes(x=x, y=y), fill=viridis(5)[2], alpha = .4, color = viridis(5)[2]) +
+  xlab(expression("N-back effect on" ~ sigma ~ "of" ~ italic(H[t]))) +
+  ylab("") +
+  scale_x_continuous(limits = c(-2, 2.5), expand = c(0, 0), breaks = c(-2, -1, 0, 1, 2), labels = label_number(accuracy = 0.01)) +
+  scale_y_continuous(limits = c(0, .9), expand = c(0, 0)) +
+  theme_plot +
+  theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+population.plot.sigma.gte <- HI_effect_2_back_plot_sigma | proportion_pop_2_back_gte_sigma
+
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/proportion_pop_2_back_gte_sigma.tiff"), plot = population.plot.sigma.gte, width = 16, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript figure 15 Stationary gaze entropy - influence of age on heteroenity effects
+
+Schieber & Gilland (2008) found an interaction effect between age and the effect of N-back on gaze transition entropy. Hence biological age could be something that is explaining variance in the effect of N-back on gaze entropy metrics. 
+
+Here we investigate whether age can predict the heterogeneity in the effect that N-back has on gaze entropy. We include age into the model as an interaction term. Total variance in gaze entropy attributed to n-back is compute, and then we work out how much of this is explained by age alone. 
+
+9.5% of the variance in the effect of N-back is explained by age, with older people tending to have larger effects of N-back (larger reductions in stationary gaze entropy).
+
+Regularising priors are used for all parameters except for the intercept and the slope for n-back. 
+
+```{r}
+## fit 3 random n-back slope for sigma
+sge.fit.4 <- brm(data = entropy.total %>%
+                   tidyr::drop_na() %>%
+                   dplyr::filter(ppid != 34, ppid != 39, ppid != 47),
+                 family = gaussian(),
+                 bf(e.norm ~ n_back * lead * age.c + (1 + n_back | ppid), sigma ~ n_back * lead + (1 + n_back | ppid)),
+                 prior = c(prior(normal(.5, .2), class = Intercept),
+                           prior(normal(-.1, .2), class = b, coef = "n_backTRUE"),
+                           prior(normal(0, .2), class = b, coef = "leadTRUE"),
+                           prior(normal(0, .2), class = b, coef = "n_backTRUE:leadTRUE"),
+                           prior(normal(0, .5), class = b, dpar = "sigma", coef = "n_backTRUE"),
+                           prior(normal(0, .5), class = b, dpar = "sigma", coef = "leadTRUE"),
+                           prior(normal(0, .5), class = b, dpar = "sigma", coef = "n_backTRUE:leadTRUE"),
+                           prior(cauchy(0, 2), class = sd),
+                           prior(lkj(2), class = cor)),
+                                   iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+
+print(summary(sge.fit.4), digits = 5)
+
+# posterior predictive checks
+pp_check(sge.fit.4, type = "dens_overlay_grouped", group = "n_back", ndraws = 100) +
+  ggtitle("Gaussian")
+
+
+#Get interaction coefficient between age and n-back
+nXa.coeff <- fixef(sge.fit.4)[7]
+
+#Random effect in model for n_back - squared to compute variance 
+residvalvar <- VarCorr(sge.fit.4)$ppid$sd[2, 1]^2
+
+#Calculate the implied total  random effect variance - interaction squared multiplied by variance in age + residual variance. 
+imptotalvalvar <- nXa.coeff^2*sd(entropy.total$age.c)^2 + residvalvar
+
+## Variance in mu difference explained by age
+1 - (residvalvar/imptotalvalvar) 
+
+# vector containing  mean age and mean effect of n-back
+mu_a <- c(mean(entropy.total$age.c),fixef(sge.fit.4)[3,1])
+mu_a <- as.vector(mu_a)
+
+# implied covariance 
+fixef(sge.fit.4)[3,1] * var(entropy.total$age.c)
+
+# computing random effects
+ageranef <- as.data.frame(ranef(sge.fit.4)) %>%
+  dplyr::select(ppid.Estimate.Intercept, ppid.Estimate.n_backTRUE)
+
+colnames(ageranef) <- c("intercept_age", "slope_age")
+
+ageranef <- as.data.frame(ageranef) %>%
+  tibble::rownames_to_column("ppid.f") %>%
+  dplyr::mutate(ppid = as.numeric(ppid.f)) %>%
+  dplyr::select(!ppid.f)
+
+#Create dataset with one line per person with mileage score 
+ageranef <- merge(ageranef, entropy.total, by = 'ppid')
+ageranef <- ageranef %>%
+  dplyr::group_by(ppid) %>%
+  dplyr::slice(1) %>%
+  dplyr::select(ppid, age.c, intercept_age, slope_age)
+
+# Person-specific implied total n-back effects for model accounting for age
+ranef.age.pred.tot <- fixef(sge.fit.4)[3] + # fixed effect for n-back
+  fixef(sge.fit.4)[7] * # fixed effect for n-back X age interaction
+  ageranef$age.c + # age 
+  as.data.frame(ranef(sge.fit.4))$ppid.Estimate.n_backTRUE # random effect slopes
+
+# relationship between the effect of N-back and age
+age.nback.effect.sge <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) + 
+  geom_vline(xintercept = 0, size = .5, color = "black", linetype="solid") +
+  geom_hline(yintercept = mean(ranef.age.pred.tot), size = .5, color = "black", linetype="solid") +
+  geom_jitter(height = 0, width = 0, size = 4,
+              shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) + 
+  stat_smooth(method = 'lm', ci = T, color = viridis(5)[3], size = 1) + 
+  xlab("Age (mean centered)") +
+  ylab(expression("Individual effects of N-back on"~ H[s])) +
+  #ylim(-.15, .1) +
+  theme_plot +
+    theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/fixation_state_space .tiff"), plot = age.nback.effect.sge , width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Manuscript figure 16 gaze transition entropy - influence of age on heteroenity effects
+
+Same principle as above but this time for gaze transition entropy. 19% of the heterogeneity in the effect of N-back is explained by age. Younger people tend to show increases in gaze transition entropy as a function of n-back (opposite of the average causal effect) or show null effects. Older people tend have reductions in gaze transition entropy randomness of fixations when having high mental workload.  
+
+```{r}
+# fit 6 - modelling sigma with random n-back slope and lead vehicle slope
+gte.fit.7 <- brm(data = entropy.total %>%
+                   tidyr::drop_na() %>%
+                   dplyr::filter(ppid != 34, ppid != 39, ppid != 47),
+                 family = gaussian(),
+                 bf(gte.norm ~ n_back * lead * age.c + (1 + n_back | ppid), 
+                    sigma ~ n_back * lead + (1 + n_back | ppid)),
+                 prior = c(prior(normal(.55, .2), class = Intercept),
+                           prior(normal(-.05, .2), class = b, coef = "n_backTRUE"),
+                           prior(normal(0, .2), class = b, coef = "leadTRUE"),
+                           prior(normal(0, .2), class = b, coef = "n_backTRUE:leadTRUE"),
+                           prior(cauchy(0, 2), class = sd),
+                           prior(lkj(2), class = cor)), 
+                 iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+
+print(summary(gte.fit.7), digits = 5)
+
+describe_posterior(gte.fit.7)
+
+#Get interaction coefficient
+nXa.coeff <- fixef(gte.fit.7)[7]
+
+#Get residual variance of valence random effect in model with n_back
+residvalvar <- VarCorr(gte.fit.7)$ppid$sd[2, 1]^2
+
+#Calculate the implied total valence random effect variance
+imptotalvalvar <- nXa.coeff^2*sd(entropy.total$age.c)^2 + residvalvar
+
+## Variance in mu difference explained by age
+1 - (residvalvar/imptotalvalvar)
+
+
+mu_a <- c(mean(entropy.total$age.c),fixef(gte.fit.7)[3,1])
+mu_a <- as.vector(mu_a)
+
+# implied cov 
+fixef(gte.fit.7)[3,1] * var(entropy.total$age.c)
+
+# computing random effects
+ageranef <- as.data.frame(ranef(gte.fit.7)) %>%
+  dplyr::select(ppid.Estimate.Intercept, ppid.Estimate.n_backTRUE)
+
+colnames(ageranef) <- c("intercept_age", "slope_age")
+
+ageranef <- as.data.frame(ageranef) %>%
+  tibble::rownames_to_column("ppid.f") %>%
+  dplyr::mutate(ppid = as.numeric(ppid.f)) %>%
+  dplyr::select(!ppid.f)
+
+#Create dataset with one line per person with mileage score 
+ageranef <- merge(ageranef, entropy.total, by = 'ppid')
+ageranef <- ageranef %>%
+  dplyr::group_by(ppid) %>%
+  dplyr::slice(1) %>%
+  dplyr::select(ppid, age.c, intercept_age, slope_age)
+
+# Person-specific implied total n-back effects for model accounting for age
+ranef.age.pred.tot <- fixef(gte.fit.7)[3] + # fixed effect for n-back
+  fixef(gte.fit.7)[7] * # fixed effect for n-back X mileage interaction
+  ageranef$age.c + # mileage 
+  as.data.frame(ranef(gte.fit.7))$ppid.Estimate.n_backTRUE # random effect slopes
+
+#
+age.nback.effect.gte <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) + 
+  geom_vline(xintercept = 0, size = .5, color = "black", linetype="solid") +
+  geom_hline(yintercept = mean(ranef.age.pred.tot), size = .5, color = "black", linetype="solid") +
+  stat_smooth(method = 'lm', ci = T, color = viridis(5)[3], size = 1) + 
+  geom_jitter(height = 0, width = 0, size = 4,
+              shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) + 
+  xlab("Age (mean centered)") +
+  ylab(expression("Individual effects of N-back on"~ H[t])) +
+  #ylim(-.15, .1) +
+  theme_plot +
+    theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+ 
+ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/age.nback.effect.tiff"), plot = age.nback.effect.gte, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+```
+
+## Does driving experience (mileage) explain heterogenity of N-back?
+
+This analysis is not in the manuscript however it is important to know whether driving experience explains the heterogeneity in the effect of N-back instead of age. We have 2 measures of driving experience - number of years holder a license, and annual mileage.
+
+The distributional model struggles to converge thus we focus on predicting the mean difference in GTE. A 3 way interaction between n-back, lead vehicle and mileage also struggles to converge. Even a 2-way interaction between n-back and mileage struggles to converge. 
+
+```{r}
+# including mileage in the model 
+gte.fit.8 <- brm(data = entropy.total %>%
+                   tidyr::drop_na() %>%
+                   dplyr::filter(ppid != 34, ppid != 39, ppid != 47),
+                 family = gaussian(),
+                 bf(gte.norm ~ n_back * Approximate.Annual.Mileage..Miles.c + (1 + n_back | ppid)),
+                 prior = c(prior(normal(.55, .2), class = Intercept),
+                           prior(normal(-.05, .2), class = b, coef = "n_backTRUE"),
+                           prior(cauchy(0, 2), class = sd),
+                           prior(lkj(2), class = cor)), 
+                 iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+
+print(summary(gte.fit.8), digits = 5)
+
+# frequentist model
+gte.freq <- lmer(gte.norm ~ n_back * Approximate.Annual.Mileage..Miles.c + (1 + n_back | ppid), data = entropy.total %>%
+                   tidyr::drop_na() %>%
+                   dplyr::filter(ppid != 34, ppid != 39, ppid != 47))
+
+summary(gte.freq)
+```
+
+## Does driving experience (years having a license) explain heterogenity of N-back?
+
+Adding driving experience to the model does reveal that 12% of the variance in the effect of n-back can be explained by years holding a license. However, this is to be expected considering the high correlation between biological age and years holding a license. 
+
+We don't have a big enough sample to separate participants into young/old holding a license for short/long periods of time. Thus teasing part whether it is age or driving experience is beyond the scope of this analysis. 
+
+```{r}
+# fit 6 - modelling sigma with random n-back slope and lead vehicle slope
+gte.fit.8 <- brm(data = entropy.total %>%
+                   tidyr::drop_na() %>%
+                   dplyr::filter(ppid != 34, ppid != 39, ppid != 47),
+                 family = gaussian(),
+                 bf(gte.norm ~ n_back * lead * No..of.years.holding.a.full.UK.driving.license.c + (1 + n_back | ppid), 
+                    sigma ~ n_back * lead + (1 + n_back | ppid)),
+                 prior = c(prior(normal(.55, .2), class = Intercept),
+                           prior(normal(-.05, .2), class = b, coef = "n_backTRUE"),
+                           prior(normal(0, .2), class = b, coef = "leadTRUE"),
+                           prior(normal(0, .2), class = b, coef = "n_backTRUE:leadTRUE"),
+                           prior(cauchy(0, 2), class = sd),
+                           prior(lkj(2), class = cor)), 
+                 iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+print(summary(gte.fit.8), digits = 5)
+
+
+#Get interaction coefficient
+nXa.coeff <- fixef(gte.fit.8)[7]
+
+#Get residual variance of valence random effect in model with n_back
+residvalvar <- VarCorr(gte.fit.8)$ppid$sd[2, 1]^2
+
+#Calculate the implied total random effect variance
+imptotalvalvar <- nXa.coeff^2*sd(entropy.total$No..of.years.holding.a.full.UK.driving.license.c)^2 + residvalvar
+
+## Variance in mu difference explained by age
+1 - (residvalvar/imptotalvalvar)
+
+# correlation between age and years holding a full driving license
+ggplot(entropy.total %>%
+         tidyr::drop_na() %>%
+         dplyr::filter(ppid != 34, ppid != 39, ppid != 47), mapping = aes(age, No..of.years.holding.a.full.UK.driving.license)) +
+  geom_point()
+```
+
