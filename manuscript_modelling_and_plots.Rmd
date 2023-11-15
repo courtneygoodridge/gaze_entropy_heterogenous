@@ -127,7 +127,7 @@ panel.background = element_blank(), axis.line = element_line(colour = "black"))
 This dataframe contains an example fixation pattern for plotting Figure 4.
 
 ```{r}
-# Setting digits to 15 mins that fixation duration s are not rounded to annoying precise. 
+# Setting digits to 15 mins that fixation duration s are not rounded to annoying precise values. 
 options(digits = 15)
 example.fixation <- fread(file = here::here("gaze_entropy_heterogenous/data/example.fixation.csv"))
 ```
@@ -159,8 +159,8 @@ Age, annual mileage, and years holding a license are all large numbers. Includin
 
 ```{r}
 # select demographic data such as age, annual miles driven, years with license
-participant.info <- read.csv(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/participant_info.csv")) %>%
-  dplyr::select(1:4, 7) %>%
+participant.info <- read.csv(here::here("gaze_entropy_heterogenous/data/participant_info.csv")) %>%
+  dplyr::select(1:5) %>%
   dplyr::rename("age" = "ï..Age", "ppid" = "Participant.ID")
 
 # combine entropy dataframe with the participant information dataframe
@@ -184,7 +184,7 @@ entropy.total$No..of.years.holding.a.full.UK.driving.license.c <- scale(entropy.
 This dataframe contains responses from the NASA TLX. We are only interested in the mental workload sub scale so the rest are filtered out. 
 
 ```{r}
-nasa.tlx.mental <- fread(file = here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/NASA_TLX_scores.csv")) %>%
+nasa.tlx.mental <- fread(file = here::here("gaze_entropy_heterogenous/data/NASA_TLX_scores.csv")) %>%
   dplyr::mutate(n_back = case_when(task == "N-back" ~ TRUE,
                                    task == "No N-back" ~ FALSE)) %>%
   dplyr::filter(sub_scale == "mental_demand") %>%
@@ -266,24 +266,20 @@ An example of the fixations for a trial. This is to demonstrate the theory beyon
 
 ```{r}
 # maximum pitch and yaw coordinates
-maxY = max(fixations$pitch)
-maxX = max(fixations$yaw)
+maxY = max(example.fixation$pitch)
+maxX = max(example.fixation$yaw)
 
 # minimum pitch and yaw coordinates
-minY = min(fixations$pitch)
-minX = min(fixations$yaw)
-
-# example trial - this can be any trial
-example <- fixations %>%
-  dplyr::filter(trialid == "9_FALSE_6_3")
+minY = min(example.fixation$pitch)
+minX = min(example.fixation$yaw)
 
 # creating state spaces - cuts the x and y coordinates into 3 degree chunks 
-example <- example %>%
+example.fixation <- example.fixation %>%
   dplyr::mutate(x_range = cut(yaw, seq(minX, maxX, by = 3), right = FALSE)) %>%
   dplyr::mutate(y_range = cut(pitch, seq(minX, maxY, by = 3), right = FALSE))
 
 # state space coordinates
-state_space_coordinates <- example %>%
+state_space_coordinates <- example.fixation %>%
   dplyr::group_by(x_range, y_range) %>%
   dplyr::summarise(count = n()) %>%
   dplyr::ungroup()  %>%
@@ -302,17 +298,17 @@ fixation_state_space <- ggplot() +
   geom_hline(state_space_coordinates, mapping = aes(yintercept = y_upper), col = "grey") +
   geom_vline(state_space_coordinates, mapping = aes(xintercept = x_lower), col = "grey") +
   geom_hline(state_space_coordinates, mapping = aes(yintercept = y_lower), col = "grey") +
-  geom_point(example, mapping = aes(yaw, pitch, col = fixation_number), size = .6) +
+  geom_point(example.fixation, mapping = aes(yaw, pitch, col = fixation_number), size = .6) +
   scale_colour_continuous(name = "Fixation number", type = "viridis", breaks = c(25, 75, 125)) +
   ylab("Pitch (°)") +
   xlab("Yaw (°)") +
   ylim(-20, 10) +
-  xlim(-40, 50) +
+  xlim(-40, 40) +
   theme_plot +
   theme(legend.position = "bottom", legend.key.width = unit(1, 'cm'), legend.key.height = unit(.3, 'cm'))
   
 # data saving   
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/fixation_state_space .tiff"), plot = fixation_state_space , width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig4.tiff"), plot = fixation_state_space , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript Figure 5: Correlation between N-back performance and age

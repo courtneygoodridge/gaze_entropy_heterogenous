@@ -1,0 +1,493 @@
+﻿participant,task,sub_scale,raw_score,converted_score
+46,N-back,mental_demand,21,100
+46,N-back,physical_demand,4,15
+46,N-back,temporal_demand,4,15
+46,N-back,performance,13,60
+46,N-back,effort,21,100
+46,N-back,frustration,10,45
+46,No N-back,mental_demand,17,80
+46,No N-back,physical_demand,4,15
+46,No N-back,temporal_demand,4,15
+46,No N-back,performance,13,60
+46,No N-back,effort,16,75
+46,No N-back,frustration,5,20
+44,N-back,mental_demand,11,50
+44,N-back,physical_demand,4,15
+44,N-back,temporal_demand,5,20
+44,N-back,performance,2,5
+44,N-back,effort,10,45
+44,N-back,frustration,14,65
+44,No N-back,mental_demand,11,50
+44,No N-back,physical_demand,3,10
+44,No N-back,temporal_demand,10,45
+44,No N-back,performance,19,90
+44,No N-back,effort,12,55
+44,No N-back,frustration,12,55
+2,N-back,mental_demand,19,90
+2,N-back,physical_demand,2,5
+2,N-back,temporal_demand,15,70
+2,N-back,performance,8,35
+2,N-back,effort,16,75
+2,N-back,frustration,14,65
+2,No N-back,mental_demand,11,50
+2,No N-back,physical_demand,2,5
+2,No N-back,temporal_demand,13,60
+2,No N-back,performance,16,75
+2,No N-back,effort,15,70
+2,No N-back,frustration,17,80
+13,N-back,mental_demand,19,90
+13,N-back,physical_demand,2,5
+13,N-back,temporal_demand,16,75
+13,N-back,performance,17,80
+13,N-back,effort,21,100
+13,N-back,frustration,14,65
+13,No N-back,mental_demand,2,5
+13,No N-back,physical_demand,2,5
+13,No N-back,temporal_demand,2,5
+13,No N-back,performance,2,5
+13,No N-back,effort,5,20
+13,No N-back,frustration,2,5
+23,N-back,mental_demand,16,75
+23,N-back,physical_demand,3,10
+23,N-back,temporal_demand,11,50
+23,N-back,performance,16,75
+23,N-back,effort,18,85
+23,N-back,frustration,14,65
+23,No N-back,mental_demand,6,25
+23,No N-back,physical_demand,2,5
+23,No N-back,temporal_demand,5,20
+23,No N-back,performance,6,25
+23,No N-back,effort,4,15
+23,No N-back,frustration,3,10
+11,N-back,mental_demand,18,85
+11,N-back,physical_demand,2,5
+11,N-back,temporal_demand,14,65
+11,N-back,performance,13,60
+11,N-back,effort,16,75
+11,N-back,frustration,17,80
+11,No N-back,mental_demand,5,20
+11,No N-back,physical_demand,3,10
+11,No N-back,temporal_demand,2,5
+11,No N-back,performance,3,10
+11,No N-back,effort,17,80
+11,No N-back,frustration,4,15
+4,N-back,mental_demand,17,80
+4,N-back,physical_demand,12,55
+4,N-back,temporal_demand,12,55
+4,N-back,performance,15,70
+4,N-back,effort,16,75
+4,N-back,frustration,11,50
+4,No N-back,mental_demand,10,45
+4,No N-back,physical_demand,7,30
+4,No N-back,temporal_demand,7,30
+4,No N-back,performance,7,30
+4,No N-back,effort,11,50
+4,No N-back,frustration,12,55
+17,N-back,mental_demand,18,85
+17,N-back,physical_demand,3,10
+17,N-back,temporal_demand,11,50
+17,N-back,performance,5,20
+17,N-back,effort,15,70
+17,N-back,frustration,11,50
+17,No N-back,mental_demand,13,60
+17,No N-back,physical_demand,12,55
+17,No N-back,temporal_demand,10,45
+17,No N-back,performance,12,55
+17,No N-back,effort,15,70
+17,No N-back,frustration,10,45
+32,N-back,mental_demand,12,55
+32,N-back,physical_demand,4,15
+32,N-back,temporal_demand,11,50
+32,N-back,performance,10,45
+32,N-back,effort,11,50
+32,N-back,frustration,11,50
+32,No N-back,mental_demand,3,10
+32,No N-back,physical_demand,3,10
+32,No N-back,temporal_demand,3,10
+32,No N-back,performance,5,20
+32,No N-back,effort,5,20
+32,No N-back,frustration,4,15
+25,N-back,mental_demand,15,70
+25,N-back,physical_demand,1,0
+25,N-back,temporal_demand,4,15
+25,N-back,performance,18,85
+25,N-back,effort,17,80
+25,N-back,frustration,2,5
+25,No N-back,mental_demand,16,75
+25,No N-back,physical_demand,2,5
+25,No N-back,temporal_demand,2,5
+25,No N-back,performance,4,15
+25,No N-back,effort,17,80
+25,No N-back,frustration,2,5
+14,N-back,mental_demand,17,80
+14,N-back,physical_demand,11,50
+14,N-back,temporal_demand,11,50
+14,N-back,performance,13,60
+14,N-back,effort,14,65
+14,N-back,frustration,9,40
+14,No N-back,mental_demand,12,55
+14,No N-back,physical_demand,13,60
+14,No N-back,temporal_demand,5,20
+14,No N-back,performance,8,35
+14,No N-back,effort,9,40
+14,No N-back,frustration,6,25
+8,N-back,mental_demand,18,85
+8,N-back,physical_demand,2,5
+8,N-back,temporal_demand,11,50
+8,N-back,performance,5,20
+8,N-back,effort,15,70
+8,N-back,frustration,6,25
+8,No N-back,mental_demand,5,20
+8,No N-back,physical_demand,3,10
+8,No N-back,temporal_demand,5,20
+8,No N-back,performance,7,30
+8,No N-back,effort,11,50
+8,No N-back,frustration,10,45
+31,N-back,mental_demand,17,80
+31,N-back,physical_demand,2,5
+31,N-back,temporal_demand,7,30
+31,N-back,performance,4,15
+31,N-back,effort,17,80
+31,N-back,frustration,5,20
+31,No N-back,mental_demand,8,35
+31,No N-back,physical_demand,4,15
+31,No N-back,temporal_demand,10,45
+31,No N-back,performance,2,5
+31,No N-back,effort,13,60
+31,No N-back,frustration,4,15
+27,N-back,mental_demand,15,70
+27,N-back,physical_demand,3,10
+27,N-back,temporal_demand,10,45
+27,N-back,performance,7,30
+27,N-back,effort,16,75
+27,N-back,frustration,12,55
+27,No N-back,mental_demand,6,25
+27,No N-back,physical_demand,2,5
+27,No N-back,temporal_demand,7,30
+27,No N-back,performance,1,0
+27,No N-back,effort,14,65
+27,No N-back,frustration,9,40
+35,N-back,mental_demand,21,100
+35,N-back,physical_demand,5,20
+35,N-back,temporal_demand,10,45
+35,N-back,performance,8,35
+35,N-back,effort,20,95
+35,N-back,frustration,11,50
+35,No N-back,mental_demand,4,15
+35,No N-back,physical_demand,2,5
+35,No N-back,temporal_demand,4,15
+35,No N-back,performance,4,15
+35,No N-back,effort,8,35
+35,No N-back,frustration,4,15
+33,N-back,mental_demand,17,80
+33,N-back,physical_demand,3,10
+33,N-back,temporal_demand,7,30
+33,N-back,performance,5,20
+33,N-back,effort,15,70
+33,N-back,frustration,3,10
+33,No N-back,mental_demand,9,40
+33,No N-back,physical_demand,2,5
+33,No N-back,temporal_demand,2,5
+33,No N-back,performance,2,5
+33,No N-back,effort,4,15
+33,No N-back,frustration,3,10
+7,N-back,mental_demand,16,75
+7,N-back,physical_demand,4,15
+7,N-back,temporal_demand,13,60
+7,N-back,performance,14,65
+7,N-back,effort,15,70
+7,N-back,frustration,11,50
+7,No N-back,mental_demand,12,55
+7,No N-back,physical_demand,3,10
+7,No N-back,temporal_demand,6,25
+7,No N-back,performance,15,70
+7,No N-back,effort,15,70
+7,No N-back,frustration,11,50
+39,N-back,mental_demand,14,65
+39,N-back,physical_demand,8,35
+39,N-back,temporal_demand,14,65
+39,N-back,performance,8,35
+39,N-back,effort,15,70
+39,N-back,frustration,11,50
+39,No N-back,mental_demand,3,10
+39,No N-back,physical_demand,3,10
+39,No N-back,temporal_demand,3,10
+39,No N-back,performance,5,20
+39,No N-back,effort,4,15
+39,No N-back,frustration,3,10
+26,N-back,mental_demand,20,95
+26,N-back,physical_demand,11,50
+26,N-back,temporal_demand,11,50
+26,N-back,performance,8,35
+26,N-back,effort,17,80
+26,N-back,frustration,14,65
+26,No N-back,mental_demand,19,90
+26,No N-back,physical_demand,16,75
+26,No N-back,temporal_demand,11,50
+26,No N-back,performance,20,95
+26,No N-back,effort,12,55
+26,No N-back,frustration,15,70
+38,N-back,mental_demand,16,75
+38,N-back,physical_demand,5,20
+38,N-back,temporal_demand,5,20
+38,N-back,performance,6,25
+38,N-back,effort,17,80
+38,N-back,frustration,16,75
+38,No N-back,mental_demand,6,25
+38,No N-back,physical_demand,1,0
+38,No N-back,temporal_demand,6,25
+38,No N-back,performance,16,75
+38,No N-back,effort,8,35
+38,No N-back,frustration,13,60
+41,N-back,mental_demand,18,85
+41,N-back,physical_demand,6,25
+41,N-back,temporal_demand,7,30
+41,N-back,performance,10,45
+41,N-back,effort,16,75
+41,N-back,frustration,6,25
+41,No N-back,mental_demand,14,65
+41,No N-back,physical_demand,5,20
+41,No N-back,temporal_demand,10,45
+41,No N-back,performance,15,70
+41,No N-back,effort,13,60
+41,No N-back,frustration,3,10
+34,N-back,mental_demand,1,0
+34,N-back,physical_demand,1,0
+34,N-back,temporal_demand,1,0
+34,N-back,performance,1,0
+34,N-back,effort,3,10
+34,N-back,frustration,1,0
+34,No N-back,mental_demand,1,0
+34,No N-back,physical_demand,1,0
+34,No N-back,temporal_demand,1,0
+34,No N-back,performance,11,50
+34,No N-back,effort,4,15
+34,No N-back,frustration,1,0
+12,N-back,mental_demand,15,70
+12,N-back,physical_demand,3,10
+12,N-back,temporal_demand,13,60
+12,N-back,performance,10,45
+12,N-back,effort,15,70
+12,N-back,frustration,4,15
+12,No N-back,mental_demand,5,20
+12,No N-back,physical_demand,1,0
+12,No N-back,temporal_demand,5,20
+12,No N-back,performance,4,15
+12,No N-back,effort,4,15
+12,No N-back,frustration,4,15
+29,N-back,mental_demand,16,75
+29,N-back,physical_demand,10,45
+29,N-back,temporal_demand,11,50
+29,N-back,performance,11,50
+29,N-back,effort,15,70
+29,N-back,frustration,11,50
+29,No N-back,mental_demand,7,30
+29,No N-back,physical_demand,5,20
+29,No N-back,temporal_demand,5,20
+29,No N-back,performance,13,60
+29,No N-back,effort,10,45
+29,No N-back,frustration,11,50
+37,N-back,mental_demand,15,70
+37,N-back,physical_demand,3,10
+37,N-back,temporal_demand,5,20
+37,N-back,performance,7,30
+37,N-back,effort,14,65
+37,N-back,frustration,10,45
+37,No N-back,mental_demand,2,5
+37,No N-back,physical_demand,2,5
+37,No N-back,temporal_demand,2,5
+37,No N-back,performance,5,20
+37,No N-back,effort,2,5
+37,No N-back,frustration,2,5
+21,N-back,mental_demand,18,85
+21,N-back,physical_demand,15,70
+21,N-back,temporal_demand,15,70
+21,N-back,performance,12,55
+21,N-back,effort,17,80
+21,N-back,frustration,15,70
+21,No N-back,mental_demand,3,10
+21,No N-back,physical_demand,16,75
+21,No N-back,temporal_demand,13,60
+21,No N-back,performance,17,80
+21,No N-back,effort,5,20
+21,No N-back,frustration,5,20
+36,N-back,mental_demand,17,80
+36,N-back,physical_demand,5,20
+36,N-back,temporal_demand,11,50
+36,N-back,performance,12,55
+36,N-back,effort,15,70
+36,N-back,frustration,15,70
+36,No N-back,mental_demand,13,60
+36,No N-back,physical_demand,8,35
+36,No N-back,temporal_demand,7,30
+36,No N-back,performance,13,60
+36,No N-back,effort,11,50
+36,No N-back,frustration,16,75
+18,N-back,mental_demand,19,90
+18,N-back,physical_demand,2,5
+18,N-back,temporal_demand,6,25
+18,N-back,performance,2,5
+18,N-back,effort,18,85
+18,N-back,frustration,9,40
+18,No N-back,mental_demand,15,70
+18,No N-back,physical_demand,1,0
+18,No N-back,temporal_demand,5,20
+18,No N-back,performance,8,35
+18,No N-back,effort,13,60
+18,No N-back,frustration,17,80
+1,N-back,mental_demand,14,65
+1,N-back,physical_demand,13,60
+1,N-back,temporal_demand,11,50
+1,N-back,performance,14,65
+1,N-back,effort,12,55
+1,N-back,frustration,10,45
+1,No N-back,mental_demand,6,25
+1,No N-back,physical_demand,4,15
+1,No N-back,temporal_demand,8,35
+1,No N-back,performance,3,10
+1,No N-back,effort,4,15
+1,No N-back,frustration,4,15
+3,N-back,mental_demand,16,75
+3,N-back,physical_demand,3,10
+3,N-back,temporal_demand,14,65
+3,N-back,performance,12,55
+3,N-back,effort,14,65
+3,N-back,frustration,4,15
+3,No N-back,mental_demand,5,20
+3,No N-back,physical_demand,5,20
+3,No N-back,temporal_demand,3,10
+3,No N-back,performance,15,70
+3,No N-back,effort,6,25
+3,No N-back,frustration,3,10
+10,N-back,mental_demand,18,85
+10,N-back,physical_demand,10,45
+10,N-back,temporal_demand,14,65
+10,N-back,performance,9,40
+10,N-back,effort,16,75
+10,N-back,frustration,12,55
+10,No N-back,mental_demand,3,10
+10,No N-back,physical_demand,1,0
+10,No N-back,temporal_demand,10,45
+10,No N-back,performance,7,30
+10,No N-back,effort,6,25
+10,No N-back,frustration,7,30
+6,N-back,mental_demand,19,90
+6,N-back,physical_demand,12,55
+6,N-back,temporal_demand,18,85
+6,N-back,performance,20,95
+6,N-back,effort,19,90
+6,N-back,frustration,18,85
+6,No N-back,mental_demand,13,60
+6,No N-back,physical_demand,3,10
+6,No N-back,temporal_demand,11,50
+6,No N-back,performance,6,25
+6,No N-back,effort,15,70
+6,No N-back,frustration,6,25
+9,N-back,mental_demand,14,65
+9,N-back,physical_demand,1,0
+9,N-back,temporal_demand,12,55
+9,N-back,performance,14,65
+9,N-back,effort,12,55
+9,N-back,frustration,15,70
+9,No N-back,mental_demand,3,10
+9,No N-back,physical_demand,3,10
+9,No N-back,temporal_demand,3,10
+9,No N-back,performance,5,20
+9,No N-back,effort,5,20
+9,No N-back,frustration,1,0
+24,N-back,mental_demand,21,100
+24,N-back,physical_demand,15,70
+24,N-back,temporal_demand,13,60
+24,N-back,performance,15,70
+24,N-back,effort,18,85
+24,N-back,frustration,13,60
+24,No N-back,mental_demand,14,65
+24,No N-back,physical_demand,7,30
+24,No N-back,temporal_demand,5,20
+24,No N-back,performance,9,40
+24,No N-back,effort,15,70
+24,No N-back,frustration,5,20
+47,N-back,mental_demand,15,70
+47,N-back,physical_demand,3,10
+47,N-back,temporal_demand,11,50
+47,N-back,performance,7,30
+47,N-back,effort,14,65
+47,N-back,frustration,2,5
+47,No N-back,mental_demand,4,15
+47,No N-back,physical_demand,3,10
+47,No N-back,temporal_demand,3,10
+47,No N-back,performance,3,10
+47,No N-back,effort,3,10
+47,No N-back,frustration,3,10
+42,N-back,mental_demand,19,90
+42,N-back,physical_demand,19,90
+42,N-back,temporal_demand,15,70
+42,N-back,performance,15,70
+42,N-back,effort,20,95
+42,N-back,frustration,15,70
+42,No N-back,mental_demand,15,70
+42,No N-back,physical_demand,6,25
+42,No N-back,temporal_demand,17,80
+42,No N-back,performance,6,25
+42,No N-back,effort,8,35
+42,No N-back,frustration,13,60
+19,N-back,mental_demand,16,75
+19,N-back,physical_demand,2,5
+19,N-back,temporal_demand,11,50
+19,N-back,performance,11,50
+19,N-back,effort,17,80
+19,N-back,frustration,13,60
+19,No N-back,mental_demand,6,25
+19,No N-back,physical_demand,2,5
+19,No N-back,temporal_demand,7,30
+19,No N-back,performance,8,35
+19,No N-back,effort,14,65
+19,No N-back,frustration,11,50
+43,N-back,mental_demand,15,70
+43,N-back,physical_demand,3,10
+43,N-back,temporal_demand,5,20
+43,N-back,performance,11,50
+43,N-back,effort,15,70
+43,N-back,frustration,14,65
+43,No N-back,mental_demand,8,35
+43,No N-back,physical_demand,4,15
+43,No N-back,temporal_demand,3,10
+43,No N-back,performance,11,50
+43,No N-back,effort,6,25
+43,No N-back,frustration,13,60
+45,N-back,mental_demand,18,85
+45,N-back,physical_demand,5,20
+45,N-back,temporal_demand,11,50
+45,N-back,performance,10,45
+45,N-back,effort,14,65
+45,N-back,frustration,12,55
+45,No N-back,mental_demand,5,20
+45,No N-back,physical_demand,4,15
+45,No N-back,temporal_demand,4,15
+45,No N-back,performance,17,80
+45,No N-back,effort,4,15
+45,No N-back,frustration,3,10
+48,N-back,mental_demand,10,45
+48,N-back,physical_demand,3,10
+48,N-back,temporal_demand,4,15
+48,N-back,performance,9,40
+48,N-back,effort,9,40
+48,N-back,frustration,8,35
+48,No N-back,mental_demand,9,40
+48,No N-back,physical_demand,2,5
+48,No N-back,temporal_demand,5,20
+48,No N-back,performance,4,15
+48,No N-back,effort,7,30
+48,No N-back,frustration,3,10
+49,N-back,mental_demand,18,85
+49,N-back,physical_demand,11,50
+49,N-back,temporal_demand,3,10
+49,N-back,performance,13,60
+49,N-back,effort,17,80
+49,N-back,frustration,12,55
+49,No N-back,mental_demand,16,75
+49,No N-back,physical_demand,16,75
+49,No N-back,temporal_demand,1,0
+49,No N-back,performance,5,20
+49,No N-back,effort,14,65
+49,No N-back,frustration,11,50
