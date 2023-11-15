@@ -317,7 +317,7 @@ Previous research has highlighted that younger people perform better at N-back t
 
 ```{r}
 # load n-back data
-n_back_performance <- fread(file = here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/Vehicle data/Processed data/n_back/n_back_performance.csv"))
+n_back_performance <- fread(file = here::here("gaze_entropy_heterogenous/data/n_back_performance.csv"))
 
 # average performance in the sample
 n_back_performance %>%
@@ -366,7 +366,7 @@ n_back_age_performance <- n_back_performance %>%
   theme(legend.position = c(.53, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 10), axis.title.y = element_text(size = 10), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 10), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # plot saving
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/n_back_age_performance.tiff"), plot = n_back_age_performance , width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig5.tiff"), plot = n_back_age_performance , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Model fit for stationary gaze entropy
@@ -478,7 +478,7 @@ beta_nl <- sge.fit.3 %>%
 sge.plot <- (beta_0 | beta_n) / (beta_l | beta_nl)
 
 # saving final plot
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.mu.tiff"), plot = sge.plot, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig6.tiff"), plot = sge.plot, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript Figure 7 - Posterior distribution for sigma parameters
@@ -542,7 +542,7 @@ alpha_nl <- sge.fit.3 %>%
 sge.plot.sigma <- (alpha_0 | alpha_n) / (alpha_l | alpha_nl)
 
 # saving plots
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.sigma.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig7.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript Figure 8: overlying raw data on posterior predicitive intervals
@@ -596,7 +596,7 @@ posterior.mean.intervals.sge <- entropy.total %>%
   theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # plot saving
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.mean.intervals.sge.n.tiff"), plot = posterior.mean.intervals.sge, width = 16, height = 10, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig8.tiff"), plot = posterior.mean.intervals.sge, width = 16, height = 10, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript Figure 9 part 1: Calculating heterogenity of the n-back effect for SGE 
@@ -694,7 +694,7 @@ signif(area, digits=2) * 100
 population.plot <- HI_effect_2_back_plot | proportion_pop_2_back
 
 # data saving
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/proportion_pop_2_back.tiff"), plot = population.plot, width = 16, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig9.tiff"), plot = population.plot, width = 16, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Model fit for gaze transition entropy
@@ -780,7 +780,7 @@ beta_nl <- gte.fit.6 %>%
 
 gte.plot <- (beta_0 | beta_n) / (beta_l | beta_nl)
 
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.mu.gte.tiff"), plot = gte.plot, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig10.tiff"), plot = gte.plot, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript Figure 11 - Visualing posterior distribution for sigma parameters - GTE
@@ -841,7 +841,7 @@ alpha_nl <- gte.fit.6 %>%
 
 sge.plot.sigma <- (alpha_0 | alpha_n) / (alpha_l | alpha_nl)
 
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.sigma.gte.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig11.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript Figure 12: overlying raw data on posterior predicitive intervals for gaze transition entropy model
@@ -880,10 +880,10 @@ posterior.mean.intervals.gte <- entropy.total %>%
   ylab("Secondary task") +
   scale_x_continuous(breaks = seq(0, .2, .05)) +
   facet_wrap(~ lead, labeller = labeller(lead = l.labs),  ncol = 1) +
-  #theme_plot +
+  theme_plot +
   theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/posterior.mean.intervals.gte.n.tiff"), plot = posterior.mean.intervals.gte, width = 16, height = 10, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig12.tiff"), plot = posterior.mean.intervals.gte, width = 16, height = 10, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript Figure 13 part 1: Calculating heterogenity of the n-back effect for GTE
@@ -976,7 +976,7 @@ proportion_pop_2_back_gte <- densplot +
 
 population.plot.gte <- HI_effect_2_back_plot_mu | proportion_pop_2_back_gte
 
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/proportion_pop_2_back_gte.tiff"), plot = population.plot.gte, width = 16, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig13.tiff"), plot = population.plot.gte, width = 16, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript Figure 14 part 1: Heterogenity effects of GTE on sigma parameters
@@ -1065,7 +1065,7 @@ proportion_pop_2_back_gte_sigma <- densplot +
 
 population.plot.sigma.gte <- HI_effect_2_back_plot_sigma | proportion_pop_2_back_gte_sigma
 
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/proportion_pop_2_back_gte_sigma.tiff"), plot = population.plot.sigma.gte, width = 16, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig14.tiff"), plot = population.plot.sigma.gte, width = 16, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript figure 15 Stationary gaze entropy - influence of age on heteroenity effects
@@ -1159,7 +1159,7 @@ age.nback.effect.sge <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) +
   theme_plot +
     theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/fixation_state_space .tiff"), plot = age.nback.effect.sge , width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig15.tiff"), plot = age.nback.effect.sge , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript figure 16 gaze transition entropy - influence of age on heteroenity effects
@@ -1242,7 +1242,7 @@ age.nback.effect.gte <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) +
   theme_plot +
     theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
  
-ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/age.nback.effect.tiff"), plot = age.nback.effect.gte, width = 12, height = 8, units = 'cm', dpi = 600, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig16.tiff"), plot = age.nback.effect.gte, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Does driving experience (mileage) explain heterogenity of N-back?
