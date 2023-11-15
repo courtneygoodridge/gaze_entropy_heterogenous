@@ -124,12 +124,12 @@ panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 ## Load fixations data
 
-This data contains every fixation for each participant for the automated driving periods. This is really only used for Figure 4 where the state spaces and fixations are described.
+This dataframe contains an example fixation pattern for plotting Figure 4.
 
 ```{r}
 # Setting digits to 15 mins that fixation duration s are not rounded to annoying precise. 
 options(digits = 15)
-fixations <- fread(file = here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/Eye data/fixations.csv"))
+example.fixation <- fread(file = here::here("gaze_entropy_heterogenous/data/example.fixation.csv"))
 ```
 
 ## Load entropy data
@@ -137,7 +137,7 @@ fixations <- fread(file = here::here("ITS/Work package 6.5 (HiDrive)/TME study/D
 This dataframe contains the processed entropy data - both stationary gaze entropy  and it's normalised versions (e and e.norm) alongside gaze transitions entropy and it's normalised form (gte.e and gte.norm). Only normalised forms are used in this analysis. 
 
 ```{r}
-entropy.total <- fread(file = here::here("ITS/Work package 6.5 (HiDrive)/TME study/Data/Eye data/gaze entropy/Critical and Non-Critical/entropy.total.csv"))
+entropy.total <- fread(file = here::here("gaze_entropy_heterogenous/data/entropy.total.csv"))
 ```
 
 ## Load participant data
