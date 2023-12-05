@@ -122,16 +122,6 @@ theme_plot <- theme(axis.title.x = element_text(size = 15), axis.text.x = elemen
 panel.background = element_blank(), axis.line = element_line(colour = "black"))
 ```
 
-## Load fixations data
-
-This dataframe contains an example fixation pattern for plotting Figure 4.
-
-```{r}
-# Setting digits to 15 mins that fixation duration s are not rounded to annoying precise values. 
-options(digits = 15)
-example.fixation <- fread(file = here::here("gaze_entropy_heterogenous/data/example.fixation.csv"))
-```
-
 ## Load entropy data
 
 This dataframe contains the processed entropy data - both stationary gaze entropy  and it's normalised versions (e and e.norm) alongside gaze transitions entropy and it's normalised form (gte.e and gte.norm). Only normalised forms are used in this analysis. 
@@ -260,58 +250,7 @@ print(summary(nasa.fit.4), digits = 5)
 pp_check(nasa.fit.4, type = "dens_overlay_grouped", group = "n_back", ndraws = 100) 
 ```
 
-## Manuscript Figure 4 - fixations within their state spaces
-
-An example of the fixations for a trial. This is to demonstrate the theory beyond gaze transition entropy. The order of the fixations are coloured to indicate their order. The probability of a fixation being in a state space given is it in the current one is used alongside the probability of the total distribution of fixations.
-
-```{r}
-# maximum pitch and yaw coordinates
-maxY = max(example.fixation$pitch)
-maxX = max(example.fixation$yaw)
-
-# minimum pitch and yaw coordinates
-minY = min(example.fixation$pitch)
-minX = min(example.fixation$yaw)
-
-# creating state spaces - cuts the x and y coordinates into 3 degree chunks 
-example.fixation <- example.fixation %>%
-  dplyr::mutate(x_range = cut(yaw, seq(minX, maxX, by = 10), right = FALSE)) %>%
-  dplyr::mutate(y_range = cut(pitch, seq(minX, maxY, by = 10), right = FALSE))
-
-# state space coordinates
-state_space_coordinates <- example.fixation %>%
-  dplyr::group_by(x_range, y_range) %>%
-  dplyr::summarise(count = n()) %>%
-  dplyr::ungroup()  %>%
-  tidyr::complete(x_range, y_range) %>%
-  dplyr::mutate(state_space = row_number()) %>%
-  dplyr::mutate(x_range_2 = x_range, y_range_2 = y_range) %>%
-  tidyr::separate_wider_delim(x_range, ",", names = c("x_lower", "x_upper")) %>%
-  tidyr::separate_wider_delim(y_range, ",", names = c("y_lower", "y_upper")) %>%
-  dplyr::mutate(x_lower = str_replace_all(x_lower, "\\[|\\]", ""), x_upper = str_replace_all(x_upper, "\\(|\\)", "")) %>%
-  dplyr::mutate(y_lower = str_replace_all(y_lower, "\\[|\\]", ""), y_upper = str_replace_all(y_upper, "\\(|\\)", "")) %>%
-  dplyr::mutate(x_lower = as.numeric(x_lower), x_upper = as.numeric(x_upper), y_lower = as.numeric(x_lower), y_upper = as.numeric(x_upper))
-
-# plot the state space grids alongside the fixation coordinates 
-fixation_state_space <- ggplot() +
-  geom_vline(state_space_coordinates, mapping = aes(xintercept = x_upper), col = "grey") +
-  geom_hline(state_space_coordinates, mapping = aes(yintercept = y_upper), col = "grey") +
-  geom_vline(state_space_coordinates, mapping = aes(xintercept = x_lower), col = "grey") +
-  geom_hline(state_space_coordinates, mapping = aes(yintercept = y_lower), col = "grey") +
-  geom_point(example.fixation, mapping = aes(yaw, pitch, col = fixation_number), size = .6) +
-  scale_colour_continuous(name = "Fixation number", type = "viridis", breaks = c(25, 75, 125)) +
-  ylab("Pitch (°)") +
-  xlab("Yaw (°)") +
-  ylim(-20, 10) +
-  xlim(-40, 40) +
-  theme_plot +
-  theme(legend.position = "bottom", legend.key.width = unit(1, 'cm'), legend.key.height = unit(.3, 'cm'))
-  
-# data saving   
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig4.tiff"), plot = fixation_state_space , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
-```
-
-## Manuscript Figure 5: Correlation between N-back performance and age
+## Manuscript Figure 4: Correlation between N-back performance and age
 
 Previous research has highlighted that younger people perform better at N-back than older people (Ozturk et al, 2023). This previous research is in manual driving, however we can investigate whether there is any correlation between age and n-back performance. Using the brms package I compute a Bayesian correlation between age and N-back performance (see https://solomonkurz.netlify.app/blog/2019-02-16-bayesian-correlations-let-s-talk-options/ and https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations for more information). By standardising the variables, we can use regularising priors to rule out outrageous parameter estimates. *n_perform_fit_3* is the model used for inference in the manuscript. 
 
@@ -366,7 +305,7 @@ n_back_age_performance <- n_back_performance %>%
   theme(legend.position = c(.53, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 10), axis.title.y = element_text(size = 10), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 10), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # plot saving
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig5.tiff"), plot = n_back_age_performance , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig4.tiff"), plot = n_back_age_performance , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Model fit for stationary gaze entropy
@@ -420,7 +359,7 @@ sge.fit.3.0.nback <- brm(data = entropy.total %>%
 print(summary(sge.fit.3.0.nback), digits = 5)
 ```
 
-## Manuscrip Figure 6 - Posterior distribution for mu parameters
+## Manuscrip Figure 5 - Posterior distribution for mu parameters
 
 The following chunk extracts draws from the posterior distribution for each parameter, and plots them relative to the null effect (dashed line). This is to illustrate whether the most probably parameter values include the null effect. The half eye plots provide intervals for the 50% (thick line) and 95% (thin line) most probable values. 
 
@@ -480,10 +419,10 @@ beta_nl <- sge.fit.3 %>%
 sge.plot <- (beta_0 | beta_n) / (beta_l | beta_nl)
 
 # saving final plot
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig6.tiff"), plot = sge.plot, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig5.tiff"), plot = sge.plot, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
-## Manuscript Figure 7 - Posterior distribution for sigma parameters
+## Manuscript Figure 6 - Posterior distribution for sigma parameters
 
 The following chunk is almost identical to the previous except this is for the sigma parameters. This is highlights within the spread_draws() function which focuses on the *b_sigma* parameters rather than just *b_*. 
 
@@ -544,10 +483,10 @@ alpha_nl <- sge.fit.3 %>%
 sge.plot.sigma <- (alpha_0 | alpha_n) / (alpha_l | alpha_nl)
 
 # saving plots
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig7.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig6.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
-## Manuscript Figure 8: overlying raw data on posterior predicitive intervals
+## Manuscript Figure 7: overlying raw data on posterior predicitive intervals
 
 Next we create a plot highlighting the raw data and overlay it onto the model predictions. This provides a nice visualisation of whether sigma does change as function of n-back/lead vehicle presence. 
 
@@ -598,10 +537,10 @@ posterior.mean.intervals.sge <- entropy.total %>%
   theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # plot saving
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig8.tiff"), plot = posterior.mean.intervals.sge, width = 16, height = 10, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig7.tiff"), plot = posterior.mean.intervals.sge, width = 16, height = 10, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
-## Manuscript Figure 9 part 1: Calculating heterogenity of the n-back effect for SGE 
+## Manuscript Figure 8 part 1: Calculating heterogenity of the n-back effect for SGE 
 
 Whilst the effects of n-back on SGE on average is a reduction of 10 percentage points, the model predicts substantial variation in this average effect. 
 
@@ -649,7 +588,7 @@ summary(sge.fit.3)[["fixed"]][3,1] + 1.96 * ran.effects
 summary(sge.fit.3)[["fixed"]][3,1] - 1.96 * ran.effects
 ```
 
-## Manuscript 9 part 2: Proportion of population who has reduced SGE during n-back
+## Manuscript 8 part 2: Proportion of population who has reduced SGE during n-back
 
 With an estimate of the average effect of SGE and the standard deviation of the effect on SGE, we can construct a distribution that models the population level distribution for the effect of N-back on SGE - 92% of the population would experience a decrease in stationary gaze entropy as a function of n-back. 
 
@@ -697,7 +636,7 @@ signif(area, digits=2) * 100
 population.plot <- HI_effect_2_back_plot | proportion_pop_2_back
 
 # data saving
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig9.tiff"), plot = population.plot, width = 16, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig8.tiff"), plot = population.plot, width = 16, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Model fit for gaze transition entropy
@@ -729,7 +668,7 @@ print(summary(gte.fit.6), digits = 5)
 describe_posterior(gte.fit.6)
 ```
 
-## Manuscript Figure 10 - Visualing posterior distribution for mu parameters - GTE
+## Manuscript Figure 9 - Visualing posterior distribution for mu parameters - GTE
 
 Highlights the posterior distributions for the main parameters for predicting mu in the model for gaze transition entropy. 
 
@@ -784,10 +723,10 @@ beta_nl <- gte.fit.6 %>%
 
 gte.plot <- (beta_0 | beta_n) / (beta_l | beta_nl)
 
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig10.tiff"), plot = gte.plot, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig9.tiff"), plot = gte.plot, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
-## Manuscript Figure 11 - Visualing posterior distribution for sigma parameters - GTE
+## Manuscript Figure 10 - Visualing posterior distribution for sigma parameters - GTE
 
 Posterior distributions for parameters predicting sigma of gaze transition entropy. 
 
@@ -845,10 +784,10 @@ alpha_nl <- gte.fit.6 %>%
 
 sge.plot.sigma <- (alpha_0 | alpha_n) / (alpha_l | alpha_nl)
 
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig11.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig10.tiff"), plot = sge.plot.sigma, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
-## Manuscript Figure 12: overlying raw data on posterior predicitive intervals for gaze transition entropy model
+## Manuscript Figure 11: overlying raw data on posterior predicitive intervals for gaze transition entropy model
 
 Identical to manuscript Figure 8 but for the gaze transition entropy model.
 
@@ -887,10 +826,10 @@ posterior.mean.intervals.gte <- entropy.total %>%
   theme_plot +
   theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig12.tiff"), plot = posterior.mean.intervals.gte, width = 16, height = 10, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig11.tiff"), plot = posterior.mean.intervals.gte, width = 16, height = 10, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
-## Manuscript Figure 13 part 1: Calculating heterogenity of the n-back effect for GTE
+## Manuscript Figure 12 part 1: Calculating heterogenity of the n-back effect for GTE
 
 Here we compute the heterogenity for the effect of N-back on gaze transition entropy. Many individuals have null effects or reversals of the average causal effect. Highlights very high variance in the effect of N-back on GTE. 
 
@@ -938,7 +877,7 @@ summary(gte.fit.6)[["fixed"]][3,1] + 1.96 * ran.effects
 summary(gte.fit.6)[["fixed"]][3,1] - 1.96 * ran.effects
 ```
 
-## Manuscript Figure 13 part 2: proportion of population who follow average GTE
+## Manuscript Figure 12 part 2: proportion of population who follow average GTE
 
 The model predicts that only 66% of the population will have reduced gaze transition entropy when performing N-back during hands-off Level 2 automated driving. 
 
@@ -980,10 +919,38 @@ proportion_pop_2_back_gte <- densplot +
 
 population.plot.gte <- HI_effect_2_back_plot_mu | proportion_pop_2_back_gte
 
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig13.tiff"), plot = population.plot.gte, width = 16, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig12.tiff"), plot = population.plot.gte, width = 16, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
-## Manuscript Figure 14 part 1: Heterogenity effects of GTE on sigma parameters
+Not included in the manuscript, but plotting out some individuals with their gaze transition entropy as a function of lead vehicle. The reversal of the effect is stark in these drivers. 
+
+```{r}
+ggplot(entropy.total %>%
+         dplyr::filter(ppid == 31), mapping = aes(x = gte.norm, y = n_back)) +
+  geom_jitter(height = .03)
+
+ggplot(entropy.total %>%
+         dplyr::filter(ppid == 17), mapping = aes(x = gte.norm, y = n_back)) +
+  geom_jitter(height = .03)
+
+ggplot(entropy.total %>%
+         dplyr::filter(ppid == 43), mapping = aes(x = gte.norm, y = n_back)) +
+  geom_jitter(height = .03)
+
+ggplot(entropy.total %>%
+         dplyr::filter(ppid == 21), mapping = aes(x = gte.norm, y = n_back)) +
+  geom_jitter(height = .03)
+
+ggplot(entropy.total %>%
+         dplyr::filter(ppid == 9), mapping = aes(x = gte.norm, y = n_back)) +
+  geom_jitter(height = .03)
+
+ggplot(entropy.total %>%
+         dplyr::filter(ppid == 3), mapping = aes(x = gte.norm, y = n_back)) +
+  geom_jitter(height = .03)
+```
+
+## Manuscript Figure 13 part 1: Heterogenity effects of GTE on sigma parameters
 
 Because there was an effect of N-back on the within-participants variance of gaze transition entropy, we now produce a strip plot investigating the effect of n-back on sigma. This effect is far more consistent across the sample, with only a few participants having decreases in sigma as a function of n-back. 
 
@@ -1028,7 +995,7 @@ summary(gte.fit.6)[["fixed"]][6,1] + 1.96 * ran.effects
 summary(gte.fit.6)[["fixed"]][6,1] - 1.96 * ran.effects
 ```
 
-## Manuscript Figure 14 part 2: Proportion of population where sigma of GTE decreases in the presence of n-back
+## Manuscript Figure 13 part 2: Proportion of population where sigma of GTE decreases in the presence of n-back
 
 As was done for the effect of GTE on mu, a distribution is constructed highlighting the percentage of the population who would show similar effects to the average effect of GTE on sigma. 
 
@@ -1069,10 +1036,10 @@ proportion_pop_2_back_gte_sigma <- densplot +
 
 population.plot.sigma.gte <- HI_effect_2_back_plot_sigma | proportion_pop_2_back_gte_sigma
 
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig14.tiff"), plot = population.plot.sigma.gte, width = 16, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig13.tiff"), plot = population.plot.sigma.gte, width = 16, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
-## Manuscript figure 15 Stationary gaze entropy - influence of age on heteroenity effects
+## Manuscript figure 14 Stationary gaze entropy - influence of age on heteroenity effects
 
 Schieber & Gilland (2008) found an interaction effect between age and the effect of N-back on gaze transition entropy. Hence biological age could be something that is explaining variance in the effect of N-back on gaze entropy metrics. 
 
@@ -1163,7 +1130,7 @@ age.nback.effect.sge <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) +
   theme_plot +
     theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig15.tiff"), plot = age.nback.effect.sge , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig14.tiff"), plot = age.nback.effect.sge , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Manuscript figure 16 gaze transition entropy - influence of age on heteroenity effects
@@ -1246,7 +1213,7 @@ age.nback.effect.gte <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) +
   theme_plot +
     theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
  
-ggsave(here::here("gaze_entropy_heterogenous/plots/Fig16.tiff"), plot = age.nback.effect.gte, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
+ggsave(here::here("gaze_entropy_heterogenous/plots/Fig15.tiff"), plot = age.nback.effect.gte, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
 
 ## Does driving experience (mileage) explain heterogenity of N-back?
