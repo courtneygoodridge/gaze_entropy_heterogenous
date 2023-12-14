@@ -492,7 +492,7 @@ Next we create a plot highlighting the raw data and overlay it onto the model pr
 
 You can also notice that there is more data in the lead vehicle panel versus the no lead vehicle panel. This is because there were more "critical" trials in comparison to non-critical trials.
 
-*add_epred_draws()* adds draws from the expectation of the posterior predictive distribution. Provides the expected means from the model.
+*add_epred_draws()* adds draws from the expectation of the posterior predictive distribution. Provides the expected means from the model. The default for the re_formula is NULL which includes the groups level effects which thus produces marginal effects (incorportates the random effects in the estimate).
 
 *add_predicted_draws()* adds draws from the posterior predictive distribution. This is draws from the posterior Normal(mu, sigma) and thus the variance will be much higher.  
 
