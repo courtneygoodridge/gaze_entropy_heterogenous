@@ -546,6 +546,8 @@ Whilst the effects of n-back on SGE on average is a reduction of 10 percentage p
 
 This chunk creates a strip plot which includes - average effect of n-back on SGE (black line), 95% credible intervals (cyan dashed lines), 95% heterogeneity intervals (blue lines), and the individual sample effects (cyan dots).
 
+This basically calculating the conditional effects for the existing groups in the dataset. This tutorial (https://www.andrewheiss.com/blog/2021/11/10/ame-bayes-re-guide/#conditional-effects-for-existing-groups) produces the same values - I just use parameters straight from the model to calculate the individual effects. Using that tutorial also provides 95% HDIs for each individual. 
+
 ```{r}
 # CI interval for average effect
 bayes.credible.intervals <- as.data.frame(summary(sge.fit.3)[["fixed"]][3:4])
