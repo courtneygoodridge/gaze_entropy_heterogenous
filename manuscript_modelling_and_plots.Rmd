@@ -546,8 +546,6 @@ Whilst the effects of n-back on SGE on average is a reduction of 10 percentage p
 
 This chunk creates a strip plot which includes - average effect of n-back on SGE (black line), 95% credible intervals (cyan dashed lines), 95% heterogeneity intervals (blue lines), and the individual sample effects (cyan dots).
 
-This basically calculating the conditional effects for the existing groups in the dataset. This tutorial (https://www.andrewheiss.com/blog/2021/11/10/ame-bayes-re-guide/#conditional-effects-for-existing-groups) produces the same values - I just use parameters straight from the model to calculate the individual effects. Using that tutorial also provides 95% HDIs for each individual. 
-
 ```{r}
 # CI interval for average effect
 bayes.credible.intervals <- as.data.frame(summary(sge.fit.3)[["fixed"]][3:4])
@@ -589,6 +587,30 @@ summary(sge.fit.3)[["random"]][["ppid"]][2,1] / summary(sge.fit.3)[["fixed"]][3,
 summary(sge.fit.3)[["fixed"]][3,1] + 1.96 * ran.effects
 summary(sge.fit.3)[["fixed"]][3,1] - 1.96 * ran.effects
 ```
+
+## Conditional effects for each group
+
+In the code chunk above (and the same for the gaze transitions entropy model), I am calculating the conditional effects for the existing groups in the dataset. I do this by extracting the model parameter estimates however in other tutorials (https://www.andrewheiss.com/blog/2021/11/10/ame-bayes-re-guide/#conditional-effects-for-existing-groups) they use a different method. Overall, the mean value of the conditional effect is identical. However in the Heiss tutorial, each estimate is accompanied by a 95% HDIs for each individual. This might prove useful for further analysis if needed, but it not used in the current manuscript. 
+
+To illustrate the equivalence, I'll use the Heiss method below.
+
+```{r}
+# Heiss method: we use the emmeans() function to calculate the posterior predictions across N-back and ppid (when lead vehicle == FALSE aka baseline), we set re_formula = NULL to include the influence of the random effects, and then contrast N-back TRUE-FALSE
+heiss_example <- sge.fit.3 %>%
+   emmeans(~ n_back + ppid,
+           at = list(lead = FALSE,
+                    ppid = levels(as.factor(entropy.total$ppid))),
+          epred = TRUE, re_formula = NULL) %>% 
+  contrast(method = "revpairwise", by = "ppid") %>% 
+  gather_emmeans_draws()
+
+# Because I am working with mean values with the model parameters, i use the mead_hdi() function
+heiss_example %>% mean_hdi() %>%
+  View()
+
+# comparing the "ranef" column in "ppid.effects and the "value" column in "heiss_example. The values are exactly the same. 
+```
+
 
 ## Manuscript 8 part 2: Proportion of population who has reduced SGE during n-back
 
