@@ -1067,7 +1067,7 @@ ggsave(here::here("gaze_entropy_heterogenous/plots/Fig13.tiff"), plot = populati
 
 Schieber & Gilland (2008) found an interaction effect between age and the effect of N-back on gaze transition entropy. Hence biological age could be something that is explaining variance in the effect of N-back on gaze entropy metrics. 
 
-Here we investigate whether age can predict the heterogeneity in the effect that N-back has on gaze entropy. We include age into the model as an interaction term. Total variance in gaze entropy attributed to n-back is compute, and then we work out how much of this is explained by age alone. 
+Here we investigate whether age can predict the heterogeneity in the effect that N-back has on gaze entropy. We include age into the model as an interaction term. Total variance in gaze entropy attributed to n-back is compute, and then we work out how much of this is explained by age alone. I think it should be made clear that this plot visualises the relationship between the total heterogeneity implied by the model and age for stationary gaze entropy. Put another way, the total variance in stationary gaze entropy attributed to N-back that can be explained by age. 
 
 9.5% of the variance in the effect of N-back is explained by age, with older people tending to have larger effects of N-back (larger reductions in stationary gaze entropy).
 
@@ -1159,7 +1159,7 @@ ggsave(here::here("gaze_entropy_heterogenous/plots/Fig14.tiff"), plot = age.nbac
 
 ## Manuscript figure 16 gaze transition entropy - influence of age on heteroenity effects
 
-Same principle as above but this time for gaze transition entropy. 19% of the heterogeneity in the effect of N-back is explained by age. Younger people tend to show increases in gaze transition entropy as a function of n-back (opposite of the average causal effect) or show null effects. Older people tend have reductions in gaze transition entropy randomness of fixations when having high mental workload.  
+I think it should be made clear that this plot visualises the relationship between the total heterogeneity implied by the model and age. Younger drivers show less heterogeneity in the influence of N-back on gaze transition entropy versus older people. In fact, age predicts that 19% of the heterogeneity in the effect of N-back is explained by age. Not only is the total implied heterogeneity less in younger people, but the total heterogenity also shows reversals of the average causal effect or null effects. Older people tend have reductions in gaze transition entropy randomness of fixations when having high mental workload.  
 
 ```{r}
 # fit 6 - modelling sigma with random n-back slope and lead vehicle slope
