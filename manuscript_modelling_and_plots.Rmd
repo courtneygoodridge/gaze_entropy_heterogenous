@@ -113,15 +113,6 @@ if(!require(scales)) install.packages("scales")
 library(scales)
 ```
 
-## Theme plot
-
-This is the theme plot used all of the plots. Of course, each plot also has it's own idiosyncrasies but this is a good baseline. 
-
-```{r}
-theme_plot <- theme(axis.title.x = element_text(size = 15), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 15), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 15), legend.text = element_text(size = 15), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-panel.background = element_blank(), axis.line = element_line(colour = "black"))
-```
-
 ## Load entropy data
 
 This dataframe contains the processed entropy data - both stationary gaze entropy  and it's normalised versions (e and e.norm) alongside gaze transitions entropy and it's normalised form (gte.e and gte.norm). Only normalised forms are used in this analysis. 
@@ -243,11 +234,13 @@ nasa.fit.4 <- brm(data = nasa.tlx.mental %>%
                  bf(converted_score ~ n_back + (1 | participant)),
                  prior = c(prior(normal(36, 20), class = Intercept),
                            prior(normal(40, 20), class = b)),
-                 iter = 10000, warmup = 2000, chains = 4, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/plots/nasa_nback_model_4"))
+                 iter = 10000, warmup = 2000, chains = 4, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/nasa_nback_model_4"))
 
 print(summary(nasa.fit.4), digits = 5)
 
 pp_check(nasa.fit.4, type = "dens_overlay_grouped", group = "n_back", ndraws = 100) 
+
+describe_posterior(nasa.fit.4)
 ```
 
 ## Manuscript Figure 4: Correlation between N-back performance and age
@@ -275,7 +268,7 @@ prior(normal(0, 1)) %>%
   stat_halfeye(.width = c(.5, .99)) +
   scale_y_discrete(NULL, breaks = NULL, expand = expansion(add = 0.1)) +
   scale_x_continuous(expression(italic(p)(beta[1]))) +
-  theme_plot
+  theme_bw()
 
 # model fitting
 n_perform_fit3 <- brm(data = n_back_performance,
@@ -284,7 +277,7 @@ n_perform_fit3 <- brm(data = n_back_performance,
                       prior = c(prior(normal(0, 1), class = Intercept),
                                 prior(normal(0, 1), class = b),
                                 prior(normal(0, 1), class = sigma)),
-                      iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+                      iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/n_back_performance_model_3"))
 
 print(summary(n_perform_fit3), digits = 5)
 describe_posterior(n_perform_fit3)
@@ -301,11 +294,8 @@ n_back_age_performance <- n_back_performance %>%
   ylab("Percent correct (mean centred)") +
   ylim(-2.5, 2.5) +
   xlim(-2, 2.5) +
-  theme_plot +
-  theme(legend.position = c(.53, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 10), axis.title.y = element_text(size = 10), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 10), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
-
-theme_bw() +
-  theme(legend.position = "bottom", legend.direction = "horizontal", axis.title.x = element_text(size = 15), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 15), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 12), legend.text = element_text(size = 12), legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), strip.text = element_text(face = "bold", size = 10))
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal", axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 12), legend.text = element_text(size = 12), legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), strip.text = element_text(face = "bold", size = 10))
 
 # plot saving
 ggsave(here::here("gaze_entropy_heterogenous/plots/Fig4.tiff"), plot = n_back_age_performance , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
@@ -337,7 +327,7 @@ sge.fit.3 <- brm(data = entropy.total %>%
                            prior(normal(0, .5), class = b, dpar = "sigma", coef = "n_backTRUE:leadTRUE"),
                            prior(cauchy(0, 2), class = sd),
                            prior(lkj(2), class = cor)),
-                                   iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+                                   iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/sge_fit_3"))
 
 print(summary(sge.fit.3), digits = 5)
 describe_posterior(sge.fit.3)
@@ -377,7 +367,7 @@ beta_0 <- sge.fit.3 %>%
   stat_halfeye(.width = c(.5, .95)) +
   ylab("") +
   xlab(expression(italic(p(beta[0] ~ "|" ~ italic(E))))) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # posterior distribution for the beta_N parameter i.e. the average change in stationary gaze entropy without a lead vehicle and in the presence of n-back
@@ -389,7 +379,7 @@ beta_n <- sge.fit.3 %>%
   ylab("") +
   xlab(expression(italic(p(beta[N] ~ "|" ~ italic(E))))) +
   xlim(-.22, 0) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 
@@ -402,7 +392,7 @@ beta_l <- sge.fit.3 %>%
   ylab("") +
   xlab(expression(italic(p(beta[L] ~ "|" ~ italic(E))))) +
   scale_x_continuous(limits = c(-.08, 0), breaks = c(-.06, -.04, -.02, 0)) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 
@@ -415,7 +405,7 @@ beta_nl <- sge.fit.3 %>%
   ylab("") +
   xlab(expression(italic(p(beta[NL] ~ "|" ~ italic(E))))) +
   xlim(-.02, .06) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # combining plots into one big plot 
@@ -441,7 +431,7 @@ alpha_0 <- sge.fit.3 %>%
   ylab("") +
   scale_x_continuous(limits = c(-3.1, -2.25), labels = label_number(accuracy = 0.01)) +
   xlab(expression(italic(p(alpha[0] ~ "|" ~ italic(E))))) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # beta_N
@@ -453,7 +443,7 @@ alpha_n <- sge.fit.3 %>%
   ylab("") +
   xlab(expression(italic(p(alpha[N] ~ "|" ~ italic(E))))) +
   xlim(-.65, .3) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 
@@ -466,7 +456,7 @@ alpha_l <- sge.fit.3 %>%
   ylab("") +
   xlab(expression(italic(p(alpha[L] ~ "|" ~ italic(E))))) +
   scale_x_continuous(limits = c(-.30, .5), labels = label_number(accuracy = 0.01)) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 
@@ -479,7 +469,7 @@ alpha_nl <- sge.fit.3 %>%
   ylab("") +
   xlab(expression(italic(p(alpha[NL] ~ "|" ~ italic(E))))) +
   xlim(-.5, .5) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # combining plots for saving
@@ -536,8 +526,8 @@ posterior.mean.intervals.sge <- entropy.total %>%
   ylab("Secondary task") +
   scale_x_continuous(breaks = seq(0, .8, .2), labels = label_number(accuracy = 0.01)) +
   facet_wrap(~ lead, labeller = labeller(lead = l.labs),  ncol = 1) +
-  theme_plot +
-  theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal", axis.title.x = element_text(size = 15), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 15), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 12), legend.text = element_text(size = 12), legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), strip.text = element_text(face = "bold", size = 10))
 
 # plot saving
 ggsave(here::here("gaze_entropy_heterogenous/plots/Fig7.tiff"), plot = posterior.mean.intervals.sge, width = 16, height = 10, units = 'cm', dpi = 300, type = 'cairo')
@@ -567,7 +557,6 @@ ran.effects <- summary(sge.fit.3)[["random"]][["ppid"]][2,1]
 HI_effect_2_back_plot <- ggplot() +
   geom_jitter(ppid.effects, mapping = aes(x = x, y = ranef), width = 0.01, height = 0, size = 4,
               shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) +
-  theme_plot +
   scale_y_continuous(limits = c(-.35, .1), breaks = seq(-.3, .1, 0.1), labels = label_number(accuracy = 0.01)) +
   ylab(expression("N-back effect on" ~ mu ~ "of" ~ italic(H[s]) ~ "(% point units)")) +
   xlab("") + 
@@ -576,10 +565,12 @@ HI_effect_2_back_plot <- ggplot() +
   geom_hline(aes(yintercept = summary(sge.fit.3)[["fixed"]][3,1], linetype = "beta_1"), size = 1.5, color = "black") +
   geom_hline(aes(yintercept = summary(sge.fit.3)[["fixed"]][3,1] + 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
   geom_hline(aes(yintercept = summary(sge.fit.3)[["fixed"]][3,1] - 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
-  scale_linetype_manual(name = " ", values = c(2, 1, 1), labels = c("95% CI", "95% HI", expression(beta[N])), guide = guide_legend(override.aes = list(color = c(viridis(5)[3], viridis(5)[2], "black")))) +
+  scale_linetype_manual(name = " ", values = c(2, 1, 1), labels = c(expression(CI[95]), expression(HI[95]), expression(beta[N])), guide = guide_legend(override.aes = list(color = c(viridis(5)[3], viridis(5)[2], "black")))) +
   scale_fill_manual(name = "Parameter", values = c(viridis(5)[2])) +
-  theme(legend.position = c(.22, .85), legend.key = element_blank(), legend.key.width = unit(0.2, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) +
+  theme_bw() +
+  theme(legend.position = c(.18, .82), legend.key = element_blank(), legend.key.width = unit(0.2, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) +
   coord_flip()  
+
 
 #ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/HI_effect_2_back.tiff"), plot = HI_effect_2_back_plot, width = 8, height = 8, units = 'cm', dpi = 600, type = 'cairo')
 
@@ -655,7 +646,7 @@ proportion_pop_2_back <- densplot +
   ylab("") +
   scale_x_continuous(limits = c(-.6, .3), expand = c(0, 0), labels = label_number(accuracy = 0.01)) +
   scale_y_continuous(limits = c(0, 4), expand = c(0, 0)) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 signif(area, digits=2) * 100
 
@@ -688,7 +679,7 @@ gte.fit.6 <- brm(data = entropy.total %>%
                            prior(normal(0, .2), class = b, coef = "n_backTRUE:leadTRUE"),
                            prior(cauchy(0, 2), class = sd),
                            prior(lkj(2), class = cor)), 
-                 iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+                 iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/gte_fit_6"))
 
 
 print(summary(gte.fit.6), digits = 5)
@@ -707,7 +698,7 @@ beta_0 <- gte.fit.6 %>%
   stat_halfeye(.width = c(.5, .95)) +
   ylab("") +
   xlab(expression(italic(p(beta[0] ~ "|" ~ italic(E))))) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # beta_N
@@ -719,7 +710,7 @@ beta_n <- gte.fit.6 %>%
   ylab("") +
   xlab(expression(italic(p(beta[N] ~ "|" ~ italic(E))))) +
   scale_x_continuous(limits = c(-.05, .02), breaks = c(-.04, -.02, 0, .02),labels = label_number(accuracy = 0.01)) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 
@@ -732,7 +723,7 @@ beta_l <- gte.fit.6 %>%
   ylab("") +
   xlab(expression(italic(p(beta[L] ~ "|" ~ italic(E))))) +
   scale_x_continuous(limits = c(-.007, .009), breaks = c(-.005, 0, .005)) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 
@@ -745,7 +736,7 @@ beta_nl <- gte.fit.6 %>%
   ylab("") +
   xlab(expression(italic(p(beta[NL] ~ "|" ~ italic(E))))) +
   scale_x_continuous(limits = c(-.02, .01)) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 gte.plot <- (beta_0 | beta_n) / (beta_l | beta_nl)
@@ -769,7 +760,7 @@ alpha_0 <- gte.fit.6 %>%
   ylab("") +
   scale_x_continuous(limits = c(-4.6, -3.7), breaks = c(-4.4, -4.2, -4, -3.8),labels = label_number(accuracy = 0.01)) +
   xlab(expression(italic(p(alpha[0] ~ "|" ~ italic(E))))) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # beta_N
@@ -781,7 +772,7 @@ alpha_n <- gte.fit.6 %>%
   ylab("") +
   xlab(expression(italic(p(alpha[N] ~ "|" ~ italic(E))))) +
   xlim(-.15, .9) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # beta_L
@@ -793,7 +784,7 @@ alpha_l <- gte.fit.6 %>%
   ylab("") +
   xlab(expression(italic(p(alpha[L] ~ "|" ~ italic(E))))) +
   xlim(-.1, .7) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 # beta_NL
@@ -805,7 +796,7 @@ alpha_nl <- gte.fit.6 %>%
   ylab("") +
   xlab(expression(italic(p(alpha[NL] ~ "|" ~ italic(E))))) +
   scale_x_continuous(limits = c(-.8, .3),labels = label_number(accuracy = 0.01)) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 
@@ -850,8 +841,8 @@ posterior.mean.intervals.gte <- entropy.total %>%
   ylab("Secondary task") +
  scale_x_continuous(limits = c(0, .3), breaks = seq(0, .4, .1), labels = label_number(accuracy = 0.01)) +
   facet_wrap(~ lead, labeller = labeller(lead = l.labs),  ncol = 1) +
-  theme_plot +
-  theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal", axis.title.x = element_text(size = 15), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 15), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 12), legend.text = element_text(size = 12), legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), strip.text = element_text(face = "bold", size = 10))
 
 ggsave(here::here("gaze_entropy_heterogenous/plots/Fig11.tiff"), plot = posterior.mean.intervals.gte, width = 16, height = 10, units = 'cm', dpi = 300, type = 'cairo')
 ```
@@ -877,7 +868,6 @@ ran.effects <- summary(gte.fit.6)[["random"]][["ppid"]][2,1]
 HI_effect_2_back_plot_mu <- ggplot() +
   geom_jitter(ppid.effects, mapping = aes(x = x, y = ranef), width = 0.01, height = 0, size = 4,
               shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) +
-  theme_plot +
   #scale_y_continuous(breaks = round(seq(-.3, .3, 0.05), digits = 2)) +
   ylab(expression("N-back effect on" ~ mu ~ "of" ~ italic(H[t]) ~ "(% point units)")) +
   xlab("") + 
@@ -887,9 +877,10 @@ HI_effect_2_back_plot_mu <- ggplot() +
   geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][3,1], linetype = "beta_1"), size = 1.5, color = "black") +
   geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][3,1] + 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
   geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][3,1] - 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
-    scale_linetype_manual(name = " ", values = c(2, 1, 1), labels = c("95% CI", "95% HI", expression(beta[N])), guide = guide_legend(override.aes = list(color = c(viridis(5)[3], viridis(5)[2], "black")))) +
+    scale_linetype_manual(name = " ", values = c(2, 1, 1), labels = c(expression(CI[95]), expression(HI[95]), expression(beta[N])), guide = guide_legend(override.aes = list(color = c(viridis(5)[3], viridis(5)[2], "black")))) +
   scale_fill_manual(name = "Parameter", values = c("dodgerblue2")) +
-  theme(legend.position = c(.24, .85), legend.key = element_blank(), legend.key.width = unit(0.2, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) +
+  theme_bw() +
+  theme(legend.position = c(.18, .82), legend.key = element_blank(), legend.key.width = unit(0.2, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) +
   coord_flip()  
 
 #ggsave(here::here("ITS/Work package 6.5 (HiDrive)/TME study/Analysis/Plots/manuscript plots/HI_effect_2_back_plot_mu.tiff"), plot = HI_effect_2_back_plot_mu, width = 8, height = 8, units = 'cm', dpi = 600, type = 'cairo')
@@ -941,7 +932,7 @@ proportion_pop_2_back_gte <- densplot +
   ylab("") +
   scale_x_continuous(limits = c(-.25, .2), expand = c(0, 0), labels = label_number(accuracy = 0.01)) +
   scale_y_continuous(limits = c(0, 8.5), expand = c(0, 0)) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 population.plot.gte <- HI_effect_2_back_plot_mu | proportion_pop_2_back_gte
@@ -998,7 +989,6 @@ ran.effects <- summary(gte.fit.6)[["random"]][["ppid"]][4,1]
 HI_effect_2_back_plot_sigma <- ggplot() +
   geom_jitter(ppid.effects, mapping = aes(x = x, y = ranef), width = 0.01, height = 0, size = 4,
               shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) +
-  theme_plot +
   ylab(expression("N-back effect on" ~ sigma ~ "of" ~ italic(H[t]))) +
   xlab("") + 
   scale_y_continuous(breaks = c(-.5, 0, .5, 1), labels = label_number(accuracy = 0.01)) +
@@ -1007,9 +997,10 @@ HI_effect_2_back_plot_sigma <- ggplot() +
   geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][6,1], linetype = "beta_1"), size = 1.5, color = "black") +
   geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][6,1] + 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
   geom_hline(aes(yintercept = summary(gte.fit.6)[["fixed"]][6,1] - 1.96 * ran.effects, linetype = "95% HI"), size = 1.5, color = viridis(5)[2]) +
-    scale_linetype_manual(name = " ", values = c(2, 1, 1), labels = c("95% CI", "95% HI", expression(alpha[N])), guide = guide_legend(override.aes = list(color = c(viridis(5)[3], viridis(5)[2], "black")))) +
+    scale_linetype_manual(name = " ", values = c(2, 1, 1), labels = c(expression(CI[95]), expression(HI[95]), expression(beta[N])), guide = guide_legend(override.aes = list(color = c(viridis(5)[3], viridis(5)[2], "black")))) +
   scale_fill_manual(name = "Parameter", values = c("dodgerblue2")) +
-  theme(legend.position = c(.204, .85), legend.key = element_blank(), legend.key.width = unit(0.2, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) +
+  theme_bw() +
+  theme(legend.position = c(.18, .82), legend.key = element_blank(), legend.key.width = unit(0.2, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) +
   coord_flip()  
 
 # relative size of  heterogenity effect for 2-back on mu
@@ -1058,7 +1049,7 @@ proportion_pop_2_back_gte_sigma <- densplot +
   ylab("") +
   scale_x_continuous(limits = c(-2, 2.5), expand = c(0, 0), breaks = c(-2, -1, 0, 1, 2), labels = label_number(accuracy = 0.01)) +
   scale_y_continuous(limits = c(0, .8), expand = c(0, 0)) +
-  theme_plot +
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), axis.text.y = element_blank(), axis.ticks.y = element_blank(),axis.ticks = element_blank(), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
 
 population.plot.sigma.gte <- HI_effect_2_back_plot_sigma | proportion_pop_2_back_gte_sigma
@@ -1092,7 +1083,7 @@ sge.fit.4 <- brm(data = entropy.total %>%
                            prior(normal(0, .5), class = b, dpar = "sigma", coef = "n_backTRUE:leadTRUE"),
                            prior(cauchy(0, 2), class = sd),
                            prior(lkj(2), class = cor)),
-                                   iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+                                   iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/sge_fit_4"))
 
 print(summary(sge.fit.4), digits = 5)
 
@@ -1154,8 +1145,8 @@ age.nback.effect.sge <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) +
   xlab("Age (mean centered)") +
   ylab(expression("Individual effects of N-back on"~ H[s])) +
   #ylim(-.15, .1) +
-  theme_plot +
-    theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal", axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 12), legend.text = element_text(size = 12), legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), strip.text = element_text(face = "bold", size = 10))
 
 ggsave(here::here("gaze_entropy_heterogenous/plots/Fig14.tiff"), plot = age.nback.effect.sge , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
@@ -1178,7 +1169,7 @@ gte.fit.7 <- brm(data = entropy.total %>%
                            prior(normal(0, .2), class = b, coef = "n_backTRUE:leadTRUE"),
                            prior(cauchy(0, 2), class = sd),
                            prior(lkj(2), class = cor)), 
-                 iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13)
+                 iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/gte_fit_7"))
 
 print(summary(gte.fit.7), digits = 5)
 
@@ -1237,8 +1228,8 @@ age.nback.effect.gte <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) +
   xlab("Age (mean centered)") +
   ylab(expression("Individual effects of N-back on"~ H[t])) +
   #ylim(-.15, .1) +
-  theme_plot +
-    theme(legend.position = c(.5, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 11), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 11), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal", axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 12), legend.text = element_text(size = 12), legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), strip.text = element_text(face = "bold", size = 10))
  
 ggsave(here::here("gaze_entropy_heterogenous/plots/Fig15.tiff"), plot = age.nback.effect.gte, width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
 ```
