@@ -220,7 +220,7 @@ prior(normal(40, 20)) %>%
   stat_halfeye(.width = c(.5, .99)) +
   scale_y_discrete(NULL, breaks = NULL, expand = expansion(add = 0.1)) +
   scale_x_continuous(expression(italic(p)(beta[1]))) +
-  theme_plot
+  theme_bw()
 
 # fit 3 - maximal model with priors on intercept (no n-back) and slope parameter (subjective workload)
 nasa.fit.3 <- brm(data = nasa.tlx.mental %>%
@@ -235,7 +235,7 @@ nasa.fit.3 <- brm(data = nasa.tlx.mental %>%
 print(summary(nasa.fit.3), digits = 5)
 pp_check(nasa.fit.3, type = "dens_overlay_grouped", group = "n_back", ndraws = 100) 
 
-# fit 4 - random intercepts with priors on intercept (no n-back) and slope parameter (subjective workload)
+# fit 4 - random intercepts with priors on intercept (no n-back) and slope parameter (effect of subjective workload)
 nasa.fit.4 <- brm(data = nasa.tlx.mental %>%
                     dplyr::filter(participant != 34, participant != 39, participant != 47),
                   family = gaussian(), 
@@ -243,7 +243,7 @@ nasa.fit.4 <- brm(data = nasa.tlx.mental %>%
                  bf(converted_score ~ n_back + (1 | participant)),
                  prior = c(prior(normal(36, 20), class = Intercept),
                            prior(normal(40, 20), class = b)),
-                 iter = 10000, warmup = 2000, chains = 4, cores = 2, seed = 13)
+                 iter = 10000, warmup = 2000, chains = 4, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/plots/nasa_nback_model_4"))
 
 print(summary(nasa.fit.4), digits = 5)
 
@@ -303,6 +303,9 @@ n_back_age_performance <- n_back_performance %>%
   xlim(-2, 2.5) +
   theme_plot +
   theme(legend.position = c(.53, .95), legend.direction = "horizontal", legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), axis.title.x = element_text(size = 10), axis.title.y = element_text(size = 10), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 10), title = element_text(size = 7), legend.title = element_text(size = 11), legend.text = element_text(size = 10)) 
+
+theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal", axis.title.x = element_text(size = 15), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 15), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 12), legend.text = element_text(size = 12), legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), strip.text = element_text(face = "bold", size = 10))
 
 # plot saving
 ggsave(here::here("gaze_entropy_heterogenous/plots/Fig4.tiff"), plot = n_back_age_performance , width = 12, height = 8, units = 'cm', dpi = 300, type = 'cairo')
