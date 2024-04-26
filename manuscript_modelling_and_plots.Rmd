@@ -1085,6 +1085,10 @@ sge.fit.4 <- brm(data = entropy.total %>%
                            prior(lkj(2), class = cor)),
                                    iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/sge_fit_4"))
 
+
+# load model
+sge.fit.4 <- readRDS(here::here("gaze_entropy_heterogenous/models/sge_fit_4.rds"))
+
 print(summary(sge.fit.4), digits = 5)
 
 # posterior predictive checks
@@ -1143,7 +1147,7 @@ age.nback.effect.sge <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) +
               shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) + 
   stat_smooth(method = 'lm', ci = T, color = viridis(5)[3], size = 1) + 
   xlab("Age (mean centered)") +
-  ylab(expression("Individual effects of N-back on"~ H[s])) +
+  ylab(expression("Implied total heterogeneity of "~ H[s])) +
   #ylim(-.15, .1) +
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 12), legend.text = element_text(size = 12), legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), strip.text = element_text(face = "bold", size = 10))
@@ -1170,6 +1174,9 @@ gte.fit.7 <- brm(data = entropy.total %>%
                            prior(cauchy(0, 2), class = sd),
                            prior(lkj(2), class = cor)), 
                  iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/gte_fit_7"))
+
+# load model
+gte.fit.7 <- readRDS(here::here("gaze_entropy_heterogenous/models/gte_fit_7.rds"))
 
 print(summary(gte.fit.7), digits = 5)
 
@@ -1226,7 +1233,7 @@ age.nback.effect.gte <- ggplot(ageranef, aes(age.c, ranef.age.pred.tot)) +
   geom_jitter(height = 0, width = 0, size = 4,
               shape = 21, colour = "black", fill = viridis(5)[3], alpha = .95, stroke = 1) + 
   xlab("Age (mean centered)") +
-  ylab(expression("Individual effects of N-back on"~ H[t])) +
+  ylab(expression("Implied total heterogeneity of "~ H[t])) +
   #ylim(-.15, .1) +
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal", axis.title.x = element_text(size = 11), axis.text.x = element_text(size = 15), axis.title.y = element_text(size = 11), axis.text.y = element_text(size = 15), title = element_text(size = 18), legend.title = element_text(size = 12), legend.text = element_text(size = 12), legend.key = element_blank(), legend.key.width = unit(0.3, 'cm'), legend.key.size = unit(0.1, 'cm'), plot.title = element_text(size = 7.5, face = "bold"), strip.text = element_text(face = "bold", size = 10))
