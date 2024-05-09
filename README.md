@@ -2,7 +2,7 @@
 
 ## Reference
 
-**If you using any elements of this repository, please cite**: Goodridge, C. M., Goncalves, R. C., Arabian, A., Horrobin, A., Solernou, A., Lee, Y. T., ... & Merat, N. (2024). Gaze entropy metrics for mental workload estimation are heterogenous during hands-off level 2 automation. Accident Analysis & Prevention, 202, 107560.
+Goodridge, C. M., Goncalves, R. C., Arabian, A., Horrobin, A., Solernou, A., Lee, Y. T., ... & Merat, N. (2024). Gaze entropy metrics for mental workload estimation are heterogenous during hands-off level 2 automation. Accident Analysis & Prevention, 202, 107560.
 
 ## Overview: experimental design
 
