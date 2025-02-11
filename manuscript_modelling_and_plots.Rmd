@@ -681,6 +681,9 @@ gte.fit.6 <- brm(data = entropy.total %>%
                            prior(lkj(2), class = cor)), 
                  iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/gte_fit_6"))
 
+# loading gte model
+gte.fit.6 <- readRDS(here::here("gaze_entropy_heterogenous/models/gte_fit_6.rds"))
+
 
 print(summary(gte.fit.6), digits = 5)
 describe_posterior(gte.fit.6)
@@ -893,6 +896,17 @@ summary(gte.fit.6)[["random"]][["ppid"]][4,1] / summary(gte.fit.6)[["fixed"]][6,
 
 summary(gte.fit.6)[["fixed"]][3,1] + 1.96 * ran.effects
 summary(gte.fit.6)[["fixed"]][3,1] - 1.96 * ran.effects
+
+#
+ppid.effects <- cbind(ppid = rownames(ppid.effects), ppid.effects)
+
+ppid.effects <- merge(ppid.effects, participant.info, by = c("ppid"))
+
+ggplot(ppid.effects, mapping = aes(age, ranef)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+
 ```
 
 ## Manuscript Figure 12 part 2: proportion of population who follow average GTE
