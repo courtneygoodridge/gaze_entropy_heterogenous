@@ -329,6 +329,9 @@ sge.fit.3 <- brm(data = entropy.total %>%
                            prior(lkj(2), class = cor)),
                                    iter = 5000, warmup = 2000, chains = 2, cores = 2, seed = 13, file = here::here("gaze_entropy_heterogenous/models/sge_fit_3"))
 
+# load model
+sge.fit.3 <- readRDS(here::here("gaze_entropy_heterogenous/models/sge_fit_3.rds"))
+
 print(summary(sge.fit.3), digits = 5)
 describe_posterior(sge.fit.3)
 
@@ -584,9 +587,11 @@ summary(sge.fit.3)[["fixed"]][3,1] - 1.96 * ran.effects
 
 ## Conditional effects for each group
 
-In the code chunk above (and the same for the gaze transitions entropy model), I am calculating the conditional effects for the existing groups in the dataset. I do this by extracting the model parameter estimates however in other tutorials (https://www.andrewheiss.com/blog/2021/11/10/ame-bayes-re-guide/#conditional-effects-for-existing-groups) they use a different method. Overall, the mean value of the conditional effect is identical. However in the Heiss tutorial, each estimate is accompanied by a 95% HDIs for each individual. This might prove useful for further analysis if needed, but it not used in the current manuscript. 
+In the code chunk above (and the same for the gaze transitions entropy model), I am calculating the conditional effects for the existing groups in the dataset (AKA what is the effect of N-back on gaze entropy for each individual). 
 
-To illustrate the equivalence, I'll use the Heiss method below.
+I do this by extracting the random effects parameter estimates directly from the model, and adding the conditional mode to the average effect. In other tutorials (https://www.andrewheiss.com/blog/2021/11/10/ame-bayes-re-guide/#conditional-effects-for-existing-groups) they use a different method with the emmeans functions. Overall, the mean value of the conditional effect is identical. However in the Heiss tutorial, each estimate is accompanied by a 95% HDIs for each individual. This might prove useful for further analysis if needed, but it not used in the current manuscript. 
+
+To illustrate the equivalence, I'll use the Heiss method below. When viewed with the View() function, the average for each participant is the same as the method above. 
 
 ```{r}
 # Heiss method: we use the emmeans() function to calculate the posterior predictions across N-back and ppid (when lead vehicle == FALSE aka baseline), we set re_formula = NULL to include the influence of the random effects, and then contrast N-back TRUE-FALSE
