@@ -205,7 +205,7 @@ print(summary(nasa.fit.2), digits = 5)
 pp_check(nasa.fit.2, type = "dens_overlay_grouped", group = "n_back", ndraws = 100) 
 
 # priors based on Figalova et al (2023)
-prior(normal(40, 20)) %>% 
+prior(normal(0, 1)) %>% 
   parse_dist() %>% 
   ggplot(aes(xdist = .dist_obj, y = prior)) + 
   stat_halfeye(.width = c(.5, .99)) +
@@ -281,6 +281,9 @@ n_perform_fit3 <- brm(data = n_back_performance,
 
 print(summary(n_perform_fit3), digits = 5)
 describe_posterior(n_perform_fit3)
+
+# load model
+n_perform_fit3 <- readRDS(here::here("gaze_entropy_heterogenous/models/n_back_performance_model_3.rds"))
 
 # plot predicting mean and confidence level 
 n_back_age_performance <- n_back_performance %>%
